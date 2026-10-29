@@ -85,6 +85,9 @@ struct GoalCalendar: View {
     let waterUnit: WaterUnit
     /// What other apps saved to Health, keyed by start of day.
     let healthDays: [Date: HealthService.Nutrition]
+    /// Health's step counts by start of day, from 28 days before the month; empty without Health. Shown for the picked
+    /// day, but they don't color the calendar.
+    let steps: [Date: Double]
     let targets: EnergyTargets?
 
     private var calendar: Calendar { .current }
@@ -121,7 +124,8 @@ struct GoalCalendar: View {
             }
 
             if let day = goals[selected] {
-                detail(selected, day)
+                Divider()
+                summary(selected, day)
             }
         }
         .padding(.vertical, 4)
@@ -146,43 +150,82 @@ struct GoalCalendar: View {
         .accessibilityLabel(day.formatted(date: .complete, time: .omitted) + (state.map { ", \(label($0))" } ?? ""))
     }
 
-    private func detail(_ day: Date, _ goals: DayGoals) -> some View {
+    private struct Stat: Identifiable {
+        let value: String
+        let label: String
+        let state: Goal?
+        /// Read out with the value, e.g. "of 2,450".
+        var target: String?
+        var id: String { label }
+    }
+
+    /// The picked day in one row, each amount green, orange or red against that day's goal, under its date and a
+    /// one-line legend for the day colors. Today is still going, so being under is uncolored, as at the top of the screen.
+    private func summary(_ day: Date, _ goals: DayGoals) -> some View {
         let t = goals.targets
-        // Today's calories and macros only turn red once they're over; being under is just the day in progress.
-        func state(_ value: Double, _ target: Int) -> Goal? {
-            day == today ? Goal.soFar(value, Double(target)) : Goal.near(value, Double(target))
+        let isToday = day == today
+        // A day with nothing logged isn't graded; it may be from before LiftLog.
+        func near(_ value: Double, _ target: Int?) -> Goal? {
+            guard goals.hasData, let target else { return nil }
+            return isToday ? Goal.soFar(value, Double(target)) : Goal.near(value, Double(target))
         }
-        return VStack(alignment: .leading, spacing: 4) {
-            Text(day == today ? "Today" : day.formatted(.dateTime.weekday(.wide).month().day())).font(.subheadline.bold())
-            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 4) {
-                GridRow {
-                    amount(goals.kcal, t?.kcal, "kcal", t.flatMap { state(goals.kcal, $0.kcal) })
-                    amount(goals.protein, t?.protein, "g protein", goals.proteinState)
-                }
-                GridRow {
-                    amount(goals.carbs, t?.carbs, "g carbs", t.flatMap { state(goals.carbs, $0.carbs) })
-                    amount(goals.fat, t?.fat, "g fat", t.flatMap { state(goals.fat, $0.fat) })
-                }
+        func minimum(_ value: Double, _ goal: Double?) -> Goal? {
+            guard let goal else { return nil }
+            return isToday ? Goal.reaching(value, goal) : DayGoals.grade(value, goal)
+        }
+        func grams(_ value: Double) -> String { "\(Int(value.rounded()).formatted()) g" }
+        var stats = [
+            Stat(value: Int(goals.kcal.rounded()).formatted(), label: "kcal", state: near(goals.kcal, t?.kcal), target: t?.kcal.formatted()),
+            Stat(value: grams(goals.protein), label: "protein", state: goals.hasData ? minimum(goals.protein, t.map { Double($0.protein) }) : nil,
+                 target: t.map { grams(Double($0.protein)) }),
+            Stat(value: grams(goals.carbs), label: "carbs", state: near(goals.carbs, t?.carbs), target: t.map { grams(Double($0.carbs)) }),
+            Stat(value: grams(goals.fat), label: "fat", state: near(goals.fat, t?.fat), target: t.map { grams(Double($0.fat)) }),
+            Stat(value: "\(Format.number(goals.water)) \(waterUnit.rawValue)", label: "water",
+                 state: goals.hasData ? minimum(goals.water, goals.waterGoal) : nil,
+                 target: goals.waterGoal.map { "\(Format.number($0)) \(waterUnit.rawValue)" }),
+        ]
+        if let count = steps[day] {
+            let goal = Steps.goal(steps, on: day)
+            stats.append(Stat(value: Int(count.rounded()).formatted(), label: "steps", state: minimum(count, Double(goal)), target: goal.formatted()))
+        }
+        return VStack(spacing: 8) {
+            HStack {
+                Text(isToday ? "Today" : day.formatted(.dateTime.weekday().month().day())).font(.footnote.weight(.semibold))
+                Spacer()
+                legend
             }
-            if let goal = goals.waterGoal {
-                value("\(Format.number(goals.water)) / \(Format.number(goal)) \(waterUnit.rawValue) water", goals.waterState)
-            }
-            if t == nil || goals.waterGoal == nil {
-                Text(goals.waterGoal == nil
-                     ? "Log your body weight in Settings → Body & aesthetics to get water, calorie and macro goals."
-                     : "Set your sex and log a body-fat % in Settings → Body & aesthetics to get calorie and macro goals.")
-                    .font(.caption).foregroundStyle(.secondary)
+            HStack(alignment: .top, spacing: 2) {
+                ForEach(stats) { stat in
+                    VStack(spacing: 1) {
+                        Text(stat.value)
+                            .font(.subheadline.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(stat.state?.color ?? .primary)
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                        Text(stat.label).font(.caption2).foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(stat.label) \(stat.value)\(stat.target.map { " of \($0)" } ?? "")\(stat.state.map { ", \(label($0))" } ?? "")")
+                }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func amount(_ value: Double, _ target: Int?, _ unit: String, _ state: Goal?) -> some View {
-        self.value(target.map { "\(Int(value.rounded()).formatted()) / \($0.formatted()) \(unit)" } ?? "\(Int(value.rounded()).formatted()) \(unit)", state)
-    }
-
-    private func value(_ text: String, _ state: Goal?) -> some View {
-        Text(text).font(.caption.bold().monospacedDigit()).foregroundStyle(state?.color ?? .primary)
+    /// What the day colors mean: protein and water at their goals and calories within 10% of the day's target is green;
+    /// within 15%, 20% for calories, is orange.
+    private var legend: some View {
+        HStack(spacing: 8) {
+            ForEach([Goal.hit, .close, .missed], id: \.self) { goal in
+                HStack(spacing: 3) {
+                    Circle().fill(goal.color).frame(width: 7, height: 7)
+                    Text(goal == .hit ? "Hit" : goal == .close ? "Close" : "Missed")
+                }
+            }
+        }
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Green: protein and water goals hit and calories within 10%. Orange: close. Red: missed.")
     }
 
     private func label(_ goal: Goal) -> String {

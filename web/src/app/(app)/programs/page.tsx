@@ -54,7 +54,7 @@ export default async function ProgramsPage({ searchParams }: { searchParams: Pro
                   <ul className="text-muted">
                     {d.exercises.map((e, i) => (
                       <li key={i}>
-                        {byId.get(exerciseUuid(e.exercise))?.name ?? "Unknown exercise"}: {e.sets} × {e.reps[0]}–{e.reps[1]}
+                        {byId.get(exerciseUuid(e.exercise))?.name ?? "Unknown exercise"}: {e.sets}{e.reps ? ` × ${e.reps[0]}–${e.reps[1]}` : ""}
                       </li>
                     ))}
                   </ul>

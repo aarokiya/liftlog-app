@@ -6,18 +6,22 @@ A strength-training tracker: a native **SwiftUI iPhone app** for logging in the 
 
 ## Features
 
-- **Workouts:** routines and built-in programs (PPL, Upper/Lower, PPL + Upper/Lower, Arnold), JSON program import, rest days with optional cardio (Stairmaster, incline walk) logged in minutes, rest timer, set types, last session's numbers as placeholders.
+- **Workouts:** routines and built-in programs (PPL, Upper/Lower, PPL + Upper/Lower, Arnold, and the **LKC Split**), JSON program import, a week strip that starts today's routine, compact one-line sets you type into, the attachment for each cable exercise, rest days with zone-2 Stairmaster and treadmill presets logged in minutes, rest timer, set types, last session's numbers as placeholders.
 - **Stats:** estimated 1RM and growth per exercise, PRs by rep range, plateau detection, weekly sets per muscle against targets, push:pull and quad:ham balance, workload (ACWR), streaks, Wilks/DOTS.
 - **Body:** weight and tape measurements, body-fat estimates for men and women (Navy, RFM, or your own), a cut/bulk plan with a first checkpoint, Apple Health import and export.
-- **Daily targets:** calories, protein, carbs and fat from your cut/bulk plan, with maintenance learned from your logs and weigh-ins and a 3-day carryover for days over or under. A goals calendar, editable food logs, and optional reminders (10am, 1pm, 8pm, plus 10pm for goals not hit).
+- **Daily targets:** calories, protein, carbs and fat from your cut/bulk plan, with maintenance learned from your logs and weigh-ins and a 3-day carryover for days over or under, shown as goal bars. Steps from Apple Health against a goal from your own recent days. A goals calendar, editable food logs, and optional reminders (10am, 1pm, 8pm, plus 10pm for goals not hit).
 - **Food and water:** official menus for 39 restaurant chains, 88 snack and drink brands, a 442k-item USDA food database with barcode lookup (Open Food Facts fallback), and a daily water goal.
 - **Equipment swaps:** replace any exercise with another one for the same movement when your gym lacks the machine.
-- **Campus extras (optional):** pick Georgia Tech in Settings for live dining-hall menus.
+- **Georgia Tech (optional):** pick Georgia Tech in Settings for every GT Dining spot (dining halls with live menus, Student Center, Tech Square, food trucks) and ~45 restaurants near campus, with 1,200+ menu items (≈ marks estimates where a place publishes no nutrition), plus **What to eat**: the best plate at each dining hall for your remaining protein and calories.
 - **CSV import** from RepCount and Gymin.
 
 ## Privacy
 
 Every row is private to its account (Postgres row-level security), Apple Health data stays on the phone, and there are no ads or trackers. You can delete your account and everything in it from Settings on the web or in the app. See [/privacy](https://liftlog-app-three.vercel.app/privacy).
+
+## License
+
+MIT; see [LICENSE](LICENSE). Use it, fork it, run your own copy.
 
 ## Prerequisites
 
@@ -38,7 +42,9 @@ Every row is private to its account (Postgres row-level security), Apple Health 
 
 ## iPhone app
 
-No paid Apple developer account is needed. `ios/Config.example.xcconfig` points at the public backend, so you only need a unique bundle id:
+No paid Apple developer account is needed. **Easiest, no Mac:** install [SideStore](https://docs.sidestore.io), then add `LiftLog.ipa` from the [latest iOS build](https://github.com/aarokiya/liftlog-app/releases/tag/ios-latest); SideStore signs it with your Apple ID and refreshes it every week.
+
+**With a Mac:** `ios/Config.example.xcconfig` points at the public backend, so you only need a unique bundle id:
 
 ```bash
 brew install xcodegen

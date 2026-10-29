@@ -1,4 +1,6 @@
 import fastFood from "../../../../shared/food/fast-food.json";
+import gatech from "../../../../shared/food/gatech.json";
+import gatechMenus from "../../../../shared/food/gatech-menus.json";
 import restaurants from "../../../../shared/food/restaurants.json";
 import snackBrands from "../../../../shared/food/snack-brands.json";
 import staples from "../../../../shared/food/dining-staples.json";
@@ -13,6 +15,8 @@ export interface FoodItem {
   protein: number;
   carbs: number;
   fat: number;
+  /** Built from USDA ingredients because the place publishes no nutrition (some of shared/food/gatech-menus.json). */
+  estimated?: boolean | null;
 }
 
 const OFFICIAL = restaurants.items as FoodItem[];
@@ -66,6 +70,33 @@ export const HALLS = [
   { id: "west-village", name: "West Village", meals: ["breakfast", "lunch", "dinner"] },
   { id: "brittain", name: "Brittain Dining Hall", meals: ["breakfast", "lunch", "dinner"] },
 ];
+
+/** A Georgia Tech dining location or a restaurant near campus (shared/food/gatech.json). */
+export interface CampusPlace {
+  name: string;
+  /** "Dining halls", "John Lewis Student Center", …, "Near campus". */
+  area: string;
+  /** Where it is, e.g. "Clough Commons" or "Midtown · 0.4 mi". */
+  detail?: string;
+  kind?: string;
+  /** Nutrislice id of a dining hall's live menu (HALLS). */
+  hall?: string;
+  /** The brand whose items are its menu; null when it publishes none. */
+  menu?: string | null;
+  /** Shown instead of a menu, e.g. for the convenience store. */
+  note?: string;
+}
+
+/** Georgia Tech Dining's locations and restaurants near campus, in the file's order. */
+export const CAMPUS = gatech.places as CampusPlace[];
+export const CAMPUS_AREAS = [...new Set(CAMPUS.map((p) => p.area))];
+/** Menus of Georgia Tech places and nearby restaurants that aren't in restaurants.json: official where published, else estimated. */
+export const CAMPUS_MENUS = gatechMenus.items as FoodItem[];
+
+/** A place's menu: a chain's official items or the estimated ones. */
+export function placeMenu(brand: string): FoodItem[] {
+  return [...FAST_FOOD, ...CAMPUS_MENUS].filter((i) => i.brand === brand);
+}
 
 export const TIME_ZONE = "America/New_York";
 
@@ -170,6 +201,32 @@ export const waterUnitFor = (weightUnit: "lb" | "kg"): WaterUnit => (weightUnit 
 export function waterGoal(bodyWeightKg: number, trained: boolean, unit: WaterUnit): number {
   const ml = bodyWeightKg * 35 + (trained ? 500 : 0);
   return Math.round(unit === "ml" ? ml : ml / ML_PER_OZ);
+}
+
+/**
+ * Takes `amount` (in `unit`) off `logs` (newest first): whole logs are removed and the last one touched is shortened,
+ * so every stored amount stays positive. Amounts stay in each log's own unit.
+ */
+export function waterRemoval(logs: { id: string; amount: number; unit: string }[], amount: number, unit: WaterUnit) {
+  const remove: string[] = [];
+  const shorten: { id: string; amount: number }[] = [];
+  // Factor from a log's unit to `unit`; dividing by it goes back.
+  const factor = (logUnit: string) => (logUnit === unit ? 1 : unit === "ml" ? ML_PER_OZ : 1 / ML_PER_OZ);
+  let left = amount;
+  for (const log of logs) {
+    if (left <= 0.05) break;
+    const shown = Number(log.amount) * factor(log.unit);
+    if (shown <= left + 0.05) {
+      remove.push(log.id);
+      left -= shown;
+    } else {
+      const rounded = Math.round(((shown - left) / factor(log.unit)) * 10) / 10;
+      if (rounded > 0) shorten.push({ id: log.id, amount: rounded });
+      else remove.push(log.id);
+      left = 0;
+    }
+  }
+  return { remove, shorten };
 }
 
 export function waterTotal(logs: { amount: number; unit: string }[], unit: WaterUnit): number {

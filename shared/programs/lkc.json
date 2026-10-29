@@ -1,0 +1,441 @@
+{
+  "id": "lkc",
+  "name": "LKC Split",
+  "split": "LKC",
+  "gym": "gatech-crc",
+  "schedule": "LKC's split plus a Delts & Arms day, with one leg day: Push (Mon), Pull (Tue), Legs (Wed), Delts & Arms (Thu), Rest (Fri), Upper (Sat), Rest (Sun). The two Rest / Light Cardio days are part of the rotation: tap one to log a Stairmaster or incline-walk session, or just rest. Up next follows the day of the week. Delts & Arms sits between Legs and a rest day, so biceps and triceps always get at least 48 hours between sessions and Upper starts fresh. Abs on Push, Legs and Upper (Mon, Wed, Sat), about every other day. Machine-first: the only free weights are the RDL and EZ preacher curl. Each exercise is the same on every day it appears, with one attachment, shown under its name during the workout: lat bar for pulldowns; rope for overhead extensions, pushdowns, straight-arm pulldowns and hammer curls; straight bar for wrist curls; single D-handles for lateral raises, Bayesian curls and flies. No hip thrusts: the RDL, glute-biased back extensions and hip abduction cover the glutes. One-arm work: weaker side first, then match its reps on the other side; log both sides as one set. Weeks 1-2: skip Delts & Arms (Thursday off); leg exercises use the lower set count in their notes, all at 3 RIR; upper-body sets at 2-3 RIR while the new exercises bed in. Weeks 3-4: add Delts & Arms. Week 5 on: everything as written. RIR = reps left in the tank. Double progression: when every set reaches the top of the rep range at the target RIR, add the smallest load step. Deload (half the sets, 3-4 RIR, same exercises) after 6-8 weeks or when reps fall on most lifts two sessions in a row.",
+  "days": [
+    {
+      "name": "Push",
+      "exercises": [
+        {
+          "exercise": 67,
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 150,
+          "notes": "The press you track. Bench at ~30 degrees, set so the bar lands just below the collarbones. 2-3 warm-up sets. Set the safety stops just under chest height so you can push to 1 RIR alone. Grip about 1.5x shoulder width. All sets at 10 = add 5 lb."
+        },
+        {
+          "exercise": 31,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 75,
+          "notes": "Deep stretch at the open position, shoulders stay back. 0-2 RIR."
+        },
+        {
+          "exercise": 34,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "notes": "Front-delt slot. Seat so the handles start around chin level; press without flaring the ribs. 1-2 RIR."
+        },
+        {
+          "exercise": 54,
+          "sets": 3,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "attachment": "Single D-handle · lowest pulley",
+          "notes": "Side-delt slot. The same lateral raise every day, cable behind the body. One arm at a time: weaker side first, match its reps on the other side. Superset with the decline crunch. 0-1 RIR."
+        },
+        {
+          "exercise": 74,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "notes": "Abs. Superset with the lateral raise. Decline bench, a plate held on your chest; curl the ribs toward the hips and lower under control (no need to go flat). Add weight once 15 is easy. 0-2 RIR."
+        },
+        {
+          "exercise": 40,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 75,
+          "attachment": "Rope · pulley at forehead height",
+          "notes": "Triceps long head. Face away from the stack, staggered stance, slight forward lean, elbows by your ears; let your hands travel behind your head for a deep stretch, then extend. 0-2 RIR."
+        },
+        {
+          "exercise": 20,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "attachment": "Rope · top pulley",
+          "notes": "Same rope, pulley moved to the top. Elbows pinned at your sides; spread the rope at the bottom and lock out. 0-1 RIR."
+        }
+      ]
+    },
+    {
+      "name": "Pull",
+      "exercises": [
+        {
+          "exercise": 8,
+          "sets": 3,
+          "reps": [
+            6,
+            12
+          ],
+          "rest": 120,
+          "attachment": "Lat bar",
+          "notes": "Vertical pull. The same pulldown every day: overhand grip just outside shoulder width. Full stretch at the top, then drive the elbows down to your sides. 1-2 RIR."
+        },
+        {
+          "exercise": 37,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "notes": "The same row on Pull and Upper. Chest on the pad, so no lower-back load. Reach forward for a full stretch, then pull the elbows toward the hips (lats). 1-2 RIR."
+        },
+        {
+          "exercise": 60,
+          "sets": 3,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60,
+          "attachment": "Rope · top pulley",
+          "notes": "Lat isolation. Slight hip hinge, arms nearly straight; sweep from eye level until your hands pass your hips. 0-2 RIR."
+        },
+        {
+          "exercise": 33,
+          "sets": 3,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "notes": "Rear-delt slot. Pec deck in rear-delt mode, one arm at a time: weaker side first, match its reps on the other side and stop there. 0-1 RIR on the weaker side."
+        },
+        {
+          "exercise": 54,
+          "sets": 2,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "attachment": "Single D-handle · lowest pulley",
+          "notes": "Extra side-delt work, the same lateral raise as Push: cable behind the body. One arm at a time: weaker side first, match its reps on the other side. 0-1 RIR."
+        },
+        {
+          "exercise": 39,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 75,
+          "notes": "Biceps slot. Kept as a free weight: CRC has no curl machine, the preacher pad already gives machine-like stability, and 2.5 lb plates give small jumps. Control the stretched bottom half. 0-2 RIR."
+        },
+        {
+          "exercise": 69,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "attachment": "Rope · lowest pulley",
+          "notes": "Forearm slot 1 (brachioradialis). Superset with the wrist curl on one dual cable station: rope on one side, straight bar on the other. Neutral grip, elbows at your sides. 0-2 RIR."
+        },
+        {
+          "exercise": 72,
+          "sets": 2,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "attachment": "Straight bar · lowest pulley",
+          "notes": "Forearm slot 2. Superset with the rope hammer curl. Kneel at a flat bench with your forearms on it, palms up and wrists just past the edge. Let the bar roll to your fingertips for the stretch, then curl up. 0-2 RIR."
+        }
+      ]
+    },
+    {
+      "name": "Legs",
+      "exercises": [
+        {
+          "exercise": 51,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 150,
+          "notes": "Quad slot 1. Weeks 1-2: 2 sets at 3 RIR, then 3 sets at 1-2 RIR. 2-3 warm-up sets. Back flat on the pad, feet shoulder-width; go as deep as you can with heels down."
+        },
+        {
+          "exercise": 5,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 150,
+          "notes": "Hamstring slot 1. Weeks 1-2: 2 sets at 3 RIR with a light bar. Kept as a free weight: no machine loads a hip hinge with the hamstrings fully stretched, and it stays at 2 RIR. Soft knees, hips back until the hamstrings are strongly stretched (often mid-shin); don't round your back to go lower."
+        },
+        {
+          "exercise": 12,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90,
+          "notes": "Quad slot 2. Weeks 1-2: 2 sets at 3 RIR. Recline the backrest if it adjusts; full range. Then 0-2 RIR."
+        },
+        {
+          "exercise": 50,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90,
+          "notes": "Hamstring slot 2. Weeks 1-2: 2 sets at 3 RIR. Seated curls train the hamstrings at longer lengths than lying curls. Then 1-2 RIR."
+        },
+        {
+          "exercise": 48,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90,
+          "notes": "Glute slot. Weeks 1-2: 1 set at 3 RIR. Glute-biased: feet turned out, pad just below the hip crease, upper back rounded, and drive the hips into the pad instead of arching the lower back. Hold a plate once 15 reps is easy. Then 1-2 RIR."
+        },
+        {
+          "exercise": 30,
+          "sets": 2,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "notes": "Abductor slot. Weeks 1-2: 1 set at 3 RIR. Lean slightly forward for more glute medius. Then 0-2 RIR. Superset with the calf raise to save time."
+        },
+        {
+          "exercise": 15,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 60,
+          "notes": "Calf slot. Weeks 1-2: 2 sets. Superset with hip abduction. Knees straight, 2 s pause in the deep stretch at the bottom. 0-2 RIR."
+        },
+        {
+          "exercise": 64,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "notes": "Abs. Captain's chair. Curl the pelvis up instead of just lifting the knees. Hanging Leg Raise (25) from the rack bar once these are easy."
+        }
+      ]
+    },
+    {
+      "name": "Delts & Arms",
+      "exercises": [
+        {
+          "exercise": 54,
+          "sets": 4,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "attachment": "Single D-handle · lowest pulley",
+          "notes": "This day starts in week 3. The same lateral raise as every day: cable behind the body. One arm at a time: weaker side first, match its reps on the other side. 0-1 RIR. On the last set, drop the weight ~30% at failure and keep going (one drop)."
+        },
+        {
+          "exercise": 33,
+          "sets": 3,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "notes": "Pec deck in rear-delt mode, one arm at a time: weaker side first, match its reps on the other side and stop there. 0-1 RIR on the weaker side."
+        },
+        {
+          "exercise": 8,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90,
+          "attachment": "Lat bar",
+          "notes": "The same pulldown as Pull and Upper: overhand grip just outside shoulder width. Chase the stretch at the top. 1-2 RIR."
+        },
+        {
+          "exercise": 68,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "attachment": "Single D-handle · lowest pulley",
+          "notes": "Superset with the overhead extension. Face away with the working arm behind the torso. weaker arm first, match its reps on the other. 0-1 RIR."
+        },
+        {
+          "exercise": 40,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "attachment": "Rope · pulley at forehead height",
+          "notes": "Superset with the Bayesian curl. Face away from the stack, staggered stance, slight forward lean, elbows by your ears; let your hands travel behind your head for a deep stretch, then extend. 0-2 RIR."
+        }
+      ]
+    },
+    {
+      "name": "Rest / Light Cardio",
+      "exercises": [
+        {
+          "exercise": 70,
+          "sets": 1,
+          "notes": "Optional. 15-25 min at an easy level you could hold a conversation at. Stand tall with your hands resting lightly on the rails or off them; leaning on the rails takes most of the work away. Log the minutes."
+        },
+        {
+          "exercise": 71,
+          "sets": 1,
+          "notes": "Optional. 20-40 min at about 2.8-3.4 mph and 8-12% incline, at a conversational pace. Don't hold the handrails. Log the minutes."
+        }
+      ]
+    },
+    {
+      "name": "Upper",
+      "exercises": [
+        {
+          "exercise": 36,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 150,
+          "notes": "Chest slot 1. 1-2 warm-up sets. Seat so the handles start around upper-chest level. 1-2 RIR. All sets at 12 = add 2.5-5 lb per side."
+        },
+        {
+          "exercise": 8,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "attachment": "Lat bar",
+          "notes": "Back slot 1. The same pulldown every day: overhand grip just outside shoulder width. Full stretch overhead, then drive the elbows down to your sides. 1-2 RIR."
+        },
+        {
+          "exercise": 37,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "notes": "Back slot 2. The same row as Pull: chest on the pad, reach forward for a full stretch, then pull the elbows toward the hips. 1-2 RIR."
+        },
+        {
+          "exercise": 55,
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60,
+          "attachment": "Single D-handle on each side · lowest pulleys",
+          "notes": "Chest slot 2 (upper chest). Hands meet around upper-chest height. 0-2 RIR."
+        },
+        {
+          "exercise": 54,
+          "sets": 3,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60,
+          "attachment": "Single D-handle · lowest pulley",
+          "notes": "Side-delt slot. The same lateral raise every day: cable behind the body. One arm at a time: weaker side first, match its reps on the other side. 0-1 RIR; the last set can go to failure."
+        },
+        {
+          "exercise": 68,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 75,
+          "attachment": "Single D-handle · lowest pulley",
+          "notes": "Biceps slot. Superset with the pushdown. Face away with the working arm behind the torso (long-head stretch). One arm at a time: weaker side first, match its reps on the other side. 0-2 RIR."
+        },
+        {
+          "exercise": 20,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 75,
+          "attachment": "Rope · top pulley",
+          "notes": "Triceps slot. Superset with the Bayesian curl. Elbows pinned; spread the rope at the bottom and lock out. 0-2 RIR."
+        },
+        {
+          "exercise": 74,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "notes": "Abs (every other day). Decline bench, a plate held on your chest; curl the ribs toward the hips and lower under control (no need to go flat). Add weight once 15 is easy. 0-2 RIR."
+        }
+      ]
+    },
+    {
+      "name": "Rest / Light Cardio",
+      "exercises": [
+        {
+          "exercise": 70,
+          "sets": 1,
+          "notes": "Optional. 15-25 min at an easy level you could hold a conversation at. Stand tall with your hands resting lightly on the rails or off them; leaning on the rails takes most of the work away. Log the minutes."
+        },
+        {
+          "exercise": 71,
+          "sets": 1,
+          "notes": "Optional. 20-40 min at about 2.8-3.4 mph and 8-12% incline, at a conversational pace. Don't hold the handrails. Log the minutes."
+        }
+      ]
+    }
+  ]
+}

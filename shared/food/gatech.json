@@ -1,0 +1,641 @@
+{
+ "note": "Georgia Tech Dining's locations (dining.gatech.edu, retrieved 2026-10-29) and restaurants near campus (miles are straight-line from the John Lewis Student Center). `hall` is a Nutrislice dining-hall id; `menu` is a brand in restaurants.json, fast-food.json or gatech-menus.json; places with neither publish no menu.",
+ "places": [
+  {
+   "name": "North Ave Dining Hall",
+   "area": "Dining halls",
+   "detail": "North Ave Apartments",
+   "kind": "All you care to eat",
+   "hall": "north-ave-dining-hall"
+  },
+  {
+   "name": "West Village",
+   "area": "Dining halls",
+   "detail": "West campus",
+   "kind": "All you care to eat",
+   "hall": "west-village"
+  },
+  {
+   "name": "Brittain Dining Hall",
+   "area": "Dining halls",
+   "detail": "649 Techwood Dr",
+   "kind": "All you care to eat",
+   "hall": "brittain"
+  },
+  {
+   "name": "Big Chicken",
+   "area": "John Lewis Student Center",
+   "kind": "Chicken",
+   "menu": "Big Chicken"
+  },
+  {
+   "name": "Blenz Bowls",
+   "area": "John Lewis Student Center",
+   "kind": "Açaí bowls & smoothies",
+   "menu": "Blenz Bowls"
+  },
+  {
+   "name": "Chick-fil-A",
+   "area": "John Lewis Student Center",
+   "kind": "Chicken",
+   "menu": "Chick-fil-A"
+  },
+  {
+   "name": "Dancing Goats",
+   "area": "John Lewis Student Center",
+   "kind": "Coffee",
+   "menu": "Dancing Goats"
+  },
+  {
+   "name": "Fresh Brothers Pizza",
+   "area": "John Lewis Student Center",
+   "kind": "Pizza",
+   "menu": "Fresh Brothers Pizza"
+  },
+  {
+   "name": "Kinnamōns",
+   "area": "John Lewis Student Center",
+   "kind": "Cinnamon rolls",
+   "menu": "Kinnamōns"
+  },
+  {
+   "name": "Krafted",
+   "area": "John Lewis Student Center",
+   "detail": "Shared counter with Wander Dawgs and Benny's",
+   "kind": "Smashburgers",
+   "menu": "Krafted"
+  },
+  {
+   "name": "Wander Dawgs",
+   "area": "John Lewis Student Center",
+   "detail": "Shared counter with Krafted and Benny's",
+   "kind": "Hot dogs",
+   "menu": "Wander Dawgs"
+  },
+  {
+   "name": "Benny's Cheesesteaks",
+   "area": "John Lewis Student Center",
+   "detail": "Shared counter with Krafted and Wander Dawgs",
+   "kind": "Cheesesteaks",
+   "menu": "Benny's Cheesesteaks"
+  },
+  {
+   "name": "Marrakech Express",
+   "area": "John Lewis Student Center",
+   "detail": "Floor 1",
+   "kind": "Moroccan",
+   "menu": "Marrakech Express"
+  },
+  {
+   "name": "Panda Express",
+   "area": "John Lewis Student Center",
+   "detail": "Floor 1",
+   "kind": "Chinese",
+   "menu": "Panda Express"
+  },
+  {
+   "name": "taïm Mediterranean Kitchen",
+   "area": "John Lewis Student Center",
+   "kind": "Mediterranean",
+   "menu": "taïm"
+  },
+  {
+   "name": "Twisted Taco",
+   "area": "John Lewis Student Center",
+   "detail": "Floor 2",
+   "kind": "Tex-Mex",
+   "menu": "Twisted Taco"
+  },
+  {
+   "name": "Tech It To Go",
+   "area": "John Lewis Student Center",
+   "kind": "Convenience store",
+   "note": "Snacks, drinks and grab-and-go meals. Scan the barcode in Search all foods."
+  },
+  {
+   "name": "Boho Taco",
+   "area": "Tech Square",
+   "detail": "22 5th St NW",
+   "kind": "Tacos",
+   "menu": "Boho Taco"
+  },
+  {
+   "name": "Conference Dining Room",
+   "area": "Tech Square",
+   "detail": "GT Hotel, 800 Spring St NW",
+   "kind": "Buffet",
+   "note": "A buffet with rotating themes. The dining-hall staples and Search all foods cover most of it."
+  },
+  {
+   "name": "Kaldi's Coffee",
+   "area": "Tech Square",
+   "detail": "55 5th St NW",
+   "kind": "Coffee",
+   "menu": "Kaldi's Coffee"
+  },
+  {
+   "name": "Moe's Southwest Grill",
+   "area": "Tech Square",
+   "detail": "85 5th St NW",
+   "kind": "Tex-Mex",
+   "menu": "Moe's Southwest Grill"
+  },
+  {
+   "name": "Ray's Pizza",
+   "area": "Tech Square",
+   "detail": "26 5th St NW",
+   "kind": "Pizza",
+   "menu": "Ray's Pizza"
+  },
+  {
+   "name": "Sankranti",
+   "area": "Tech Square",
+   "detail": "85 5th St NW",
+   "kind": "Indian",
+   "menu": "Sankranti"
+  },
+  {
+   "name": "Tech Square Tavern",
+   "area": "Tech Square",
+   "detail": "GT Hotel, 800 Spring St NW",
+   "kind": "Bar & grill",
+   "menu": "Tech Square Tavern"
+  },
+  {
+   "name": "Tin Drum Asian Kitchen",
+   "area": "Tech Square",
+   "detail": "88 5th St NW",
+   "kind": "Asian",
+   "menu": "Tin Drum Asian Kitchen"
+  },
+  {
+   "name": "Dunkin'",
+   "area": "Around campus",
+   "detail": "The Pavilions, 410 4th St NW",
+   "kind": "Coffee & donuts",
+   "menu": "Dunkin'"
+  },
+  {
+   "name": "Jimmy John's",
+   "area": "Around campus",
+   "detail": "The Pavilions, 410 4th St NW",
+   "kind": "Sandwiches",
+   "menu": "Jimmy John's"
+  },
+  {
+   "name": "Kaldi's Coffee",
+   "area": "Around campus",
+   "detail": "Clough Commons",
+   "kind": "Coffee",
+   "menu": "Kaldi's Coffee"
+  },
+  {
+   "name": "Sideways Cafe",
+   "area": "Around campus",
+   "detail": "Price Gilbert Library",
+   "kind": "Coffee (Blue Donkey)",
+   "menu": "Blue Donkey Coffee"
+  },
+  {
+   "name": "Gold & Bold Coffee",
+   "area": "Around campus",
+   "detail": "Petit Institute (IBB)",
+   "kind": "Coffee",
+   "menu": "Gold & Bold Coffee"
+  },
+  {
+   "name": "6PackSubs",
+   "area": "Food trucks",
+   "kind": "Vietnamese subs"
+  },
+  {
+   "name": "Adam J's Grilled Cheese",
+   "area": "Food trucks",
+   "kind": "Grilled cheese"
+  },
+  {
+   "name": "Bento Bus",
+   "area": "Food trucks",
+   "kind": "Japanese"
+  },
+  {
+   "name": "D Good Good Food",
+   "area": "Food trucks",
+   "kind": "Street food"
+  },
+  {
+   "name": "Gyro Chef",
+   "area": "Food trucks",
+   "kind": "Mediterranean"
+  },
+  {
+   "name": "The Jazz Burger",
+   "area": "Food trucks",
+   "kind": "Burgers"
+  },
+  {
+   "name": "Kona Ice",
+   "area": "Food trucks",
+   "kind": "Shaved ice"
+  },
+  {
+   "name": "Model A Food Truck",
+   "area": "Food trucks",
+   "kind": "Tech Dining truck"
+  },
+  {
+   "name": "Moni's Donuts",
+   "area": "Food trucks",
+   "kind": "Mini donuts"
+  },
+  {
+   "name": "Reggae Vybz",
+   "area": "Food trucks",
+   "kind": "Caribbean"
+  },
+  {
+   "name": "Taco Supreme",
+   "area": "Food trucks",
+   "kind": "Tacos"
+  },
+  {
+   "name": "Tres Jardines",
+   "area": "Food trucks",
+   "kind": "Mexican"
+  },
+  {
+   "name": "Buenos Dias Cafe",
+   "area": "Community Market",
+   "kind": "Latin breakfast"
+  },
+  {
+   "name": "Dorothy's Desserts",
+   "area": "Community Market",
+   "kind": "Desserts"
+  },
+  {
+   "name": "Eurocrepes by Tamas",
+   "area": "Community Market",
+   "kind": "Crêpes"
+  },
+  {
+   "name": "The Juice Lady ATL",
+   "area": "Community Market",
+   "kind": "Juice"
+  },
+  {
+   "name": "King of Pops",
+   "area": "Community Market",
+   "kind": "Ice pops"
+  },
+  {
+   "name": "Komei",
+   "area": "Community Market",
+   "kind": "Japanese"
+  },
+  {
+   "name": "Marlee Street Eatz",
+   "area": "Community Market",
+   "kind": "Jamaican"
+  },
+  {
+   "name": "Naija Gourmet Foods",
+   "area": "Community Market",
+   "kind": "Nigerian"
+  },
+  {
+   "name": "Pecan Jack's",
+   "area": "Community Market",
+   "kind": "Ice cream & pralines"
+  },
+  {
+   "name": "Pretty Little Tacos",
+   "area": "Community Market",
+   "kind": "Creole-Mexican"
+  },
+  {
+   "name": "Red's Beer Garden",
+   "area": "Community Market",
+   "kind": "Hot dogs"
+  },
+  {
+   "name": "Samurai Bodega",
+   "area": "Community Market",
+   "kind": "Japanese grab & go"
+  },
+  {
+   "name": "Supreme Burger",
+   "area": "Community Market",
+   "kind": "Burgers"
+  },
+  {
+   "name": "Gyro Bros",
+   "area": "Near campus",
+   "detail": "Tech Square · 0.5 mi",
+   "kind": "Greek",
+   "menu": "Gyro Bros"
+  },
+  {
+   "name": "Papa John's",
+   "area": "Near campus",
+   "detail": "Home Park · 0.5 mi",
+   "kind": "Pizza",
+   "menu": "Papa John's"
+  },
+  {
+   "name": "Aviva by Kameel",
+   "area": "Near campus",
+   "detail": "Tech Square · 0.6 mi",
+   "kind": "Mediterranean"
+  },
+  {
+   "name": "Choong Man Chicken",
+   "area": "Near campus",
+   "detail": "Home Park · 0.6 mi",
+   "kind": "Korean chicken",
+   "menu": "Choong Man Chicken"
+  },
+  {
+   "name": "Firehouse Subs",
+   "area": "Near campus",
+   "detail": "Home Park · 0.6 mi",
+   "kind": "Sandwiches",
+   "menu": "Firehouse Subs"
+  },
+  {
+   "name": "Momonoki",
+   "area": "Near campus",
+   "detail": "Midtown · 0.6 mi",
+   "kind": "Japanese cafe"
+  },
+  {
+   "name": "Pizza Hut",
+   "area": "Near campus",
+   "detail": "Home Park · 0.6 mi",
+   "kind": "Pizza",
+   "menu": "Pizza Hut"
+  },
+  {
+   "name": "Rocky Mountain Pizza Co.",
+   "area": "Near campus",
+   "detail": "Home Park · 0.6 mi",
+   "kind": "Pizza & wings",
+   "menu": "Rocky Mountain Pizza"
+  },
+  {
+   "name": "Starbucks",
+   "area": "Near campus",
+   "detail": "Tech Square · 0.6 mi",
+   "kind": "Coffee",
+   "menu": "Starbucks"
+  },
+  {
+   "name": "Sublime Doughnuts",
+   "area": "Near campus",
+   "detail": "Home Park · 0.6 mi",
+   "kind": "Doughnuts",
+   "menu": "Sublime Doughnuts"
+  },
+  {
+   "name": "Subway",
+   "area": "Near campus",
+   "detail": "Tech Square · 0.6 mi",
+   "kind": "Sandwiches",
+   "menu": "Subway"
+  },
+  {
+   "name": "The Varsity",
+   "area": "Near campus",
+   "detail": "North Ave · 0.6 mi",
+   "kind": "Burgers & hot dogs",
+   "menu": "The Varsity"
+  },
+  {
+   "name": "Tim Hortons",
+   "area": "Near campus",
+   "detail": "North Ave · 0.6 mi",
+   "kind": "Coffee & donuts",
+   "menu": "Tim Hortons"
+  },
+  {
+   "name": "Waffle House",
+   "area": "Near campus",
+   "detail": "Tech Square · 0.6 mi",
+   "kind": "Breakfast diner",
+   "menu": "Waffle House"
+  },
+  {
+   "name": "Domino's",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.7 mi",
+   "kind": "Pizza",
+   "menu": "Domino's"
+  },
+  {
+   "name": "Food Terminal",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.7 mi",
+   "kind": "Malaysian street food"
+  },
+  {
+   "name": "Rreal Tacos",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.7 mi",
+   "kind": "Tacos",
+   "menu": "Rreal Tacos"
+  },
+  {
+   "name": "Taco Bell",
+   "area": "Near campus",
+   "detail": "Midtown · 0.7 mi",
+   "kind": "Tex-Mex",
+   "menu": "Taco Bell"
+  },
+  {
+   "name": "Antico Pizza Napoletana",
+   "area": "Near campus",
+   "detail": "Home Park · 0.8 mi",
+   "kind": "Neapolitan pizza",
+   "menu": "Antico Pizza Napoletana"
+  },
+  {
+   "name": "Cypress Street Pint & Plate",
+   "area": "Near campus",
+   "detail": "Midtown · 0.8 mi",
+   "kind": "Pub & burgers"
+  },
+  {
+   "name": "Einstein Bros. Bagels",
+   "area": "Near campus",
+   "detail": "Midtown · 0.8 mi",
+   "kind": "Bagels & breakfast",
+   "menu": "Einstein Bros. Bagels"
+  },
+  {
+   "name": "Five Guys",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.8 mi",
+   "kind": "Burgers",
+   "menu": "Five Guys"
+  },
+  {
+   "name": "Jimmy John's",
+   "area": "Near campus",
+   "detail": "Home Park · 0.8 mi",
+   "kind": "Sandwiches",
+   "menu": "Jimmy John's"
+  },
+  {
+   "name": "Ponko Chicken",
+   "area": "Near campus",
+   "detail": "Midtown · 0.8 mi",
+   "kind": "Chicken tenders"
+  },
+  {
+   "name": "Smoothie King",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.8 mi",
+   "kind": "Smoothies",
+   "menu": "Smoothie King"
+  },
+  {
+   "name": "Which Wich",
+   "area": "Near campus",
+   "detail": "Midtown · 0.8 mi",
+   "kind": "Sandwiches",
+   "menu": "Which Wich"
+  },
+  {
+   "name": "Burger King",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.9 mi",
+   "kind": "Burgers",
+   "menu": "Burger King"
+  },
+  {
+   "name": "CAVA",
+   "area": "Near campus",
+   "detail": "Midtown · 0.9 mi",
+   "kind": "Mediterranean",
+   "menu": "Cava"
+  },
+  {
+   "name": "Chick-fil-A",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.9 mi",
+   "kind": "Chicken",
+   "menu": "Chick-fil-A"
+  },
+  {
+   "name": "Cook Out",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.9 mi",
+   "kind": "Burgers & shakes",
+   "menu": "Cook Out"
+  },
+  {
+   "name": "Hattie B's Hot Chicken",
+   "area": "Near campus",
+   "detail": "West Midtown · 0.9 mi",
+   "kind": "Hot chicken",
+   "menu": "Hattie B's Hot Chicken"
+  },
+  {
+   "name": "Mellow Mushroom",
+   "area": "Near campus",
+   "detail": "North Ave · 0.9 mi",
+   "kind": "Pizza",
+   "menu": "Mellow Mushroom"
+  },
+  {
+   "name": "Rush Bowls",
+   "area": "Near campus",
+   "detail": "Midtown · 0.9 mi",
+   "kind": "Smoothie bowls",
+   "menu": "Rush Bowls"
+  },
+  {
+   "name": "Silver Skillet",
+   "area": "Near campus",
+   "detail": "Home Park · 0.9 mi",
+   "kind": "Southern diner",
+   "menu": "Silver Skillet"
+  },
+  {
+   "name": "Sweetgreen",
+   "area": "Near campus",
+   "detail": "West Midtown · 1.0 mi",
+   "kind": "Salads",
+   "menu": "Sweetgreen"
+  },
+  {
+   "name": "Velvet Taco",
+   "area": "Near campus",
+   "detail": "West Midtown · 1.0 mi",
+   "kind": "Tacos",
+   "menu": "Velvet Taco"
+  },
+  {
+   "name": "Chipotle",
+   "area": "Near campus",
+   "detail": "Midtown · 1.1 mi",
+   "kind": "Mexican",
+   "menu": "Chipotle"
+  },
+  {
+   "name": "Flower Child",
+   "area": "Near campus",
+   "detail": "West Midtown · 1.1 mi",
+   "kind": "Healthy bowls",
+   "menu": "Flower Child"
+  },
+  {
+   "name": "Panera Bread",
+   "area": "Near campus",
+   "detail": "Midtown · 1.1 mi",
+   "kind": "Bakery café",
+   "menu": "Panera Bread"
+  },
+  {
+   "name": "Shake Shack",
+   "area": "Near campus",
+   "detail": "West Midtown · 1.1 mi",
+   "kind": "Burgers",
+   "menu": "Shake Shack"
+  },
+  {
+   "name": "Dunkin'",
+   "area": "Near campus",
+   "detail": "Midtown · 1.2 mi",
+   "kind": "Coffee & donuts",
+   "menu": "Dunkin'"
+  },
+  {
+   "name": "McAlister's Deli",
+   "area": "Near campus",
+   "detail": "West Midtown · 1.2 mi",
+   "kind": "Deli",
+   "menu": "McAlister's Deli"
+  },
+  {
+   "name": "Zaxby's",
+   "area": "Near campus",
+   "detail": "West Midtown · 1.2 mi",
+   "kind": "Chicken",
+   "menu": "Zaxby's"
+  },
+  {
+   "name": "California Pizza Kitchen",
+   "area": "Near campus",
+   "detail": "Atlantic Station · 1.3 mi",
+   "kind": "Pizza"
+  },
+  {
+   "name": "Salata",
+   "area": "Near campus",
+   "detail": "Atlantic Station · 1.3 mi",
+   "kind": "Salads & wraps",
+   "menu": "Salata"
+  }
+ ]
+}

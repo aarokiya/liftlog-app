@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FAST_FOOD, STAPLES, currentMeal, localDate, parseNutrislice, totals, waterGoal, waterTotal, waterUnitFor, brandFoods, uniqueFoods, type FoodItem } from ".";
+import { CAMPUS, CAMPUS_MENUS, FAST_FOOD, HALLS, STAPLES, placeMenu, waterRemoval, currentMeal, localDate, parseNutrislice, totals, waterGoal, waterTotal, waterUnitFor, brandFoods, uniqueFoods, type FoodItem } from ".";
 
 const food = (name: string, brand: string | null = null, kcal = 100): FoodItem => ({ id: name, name, brand, serving: "1 bar", kcal, protein: 1, carbs: 1, fat: 1 });
 
@@ -17,6 +17,29 @@ describe("snack brands", () => {
   });
 });
 
+describe("georgia tech", () => {
+  it("links every place to a dining hall, a menu, or a note on how to log it", () => {
+    expect(new Set(CAMPUS.map((p) => `${p.area}|${p.name}`)).size).toBe(CAMPUS.length);
+    for (const p of CAMPUS) {
+      if (p.hall) expect(HALLS.map((h) => h.id), p.name).toContain(p.hall);
+      else if (p.menu) expect(placeMenu(p.menu).length, p.name).toBeGreaterThan(0);
+    }
+    expect(CAMPUS.filter((p) => p.hall)).toHaveLength(HALLS.length);
+  });
+
+  it("ships campus menus with sane macros and unique ids", () => {
+    const ids = new Set(FAST_FOOD.map((i) => i.id));
+    for (const i of CAMPUS_MENUS) {
+      expect(ids.has(i.id), i.id).toBe(false);
+      ids.add(i.id);
+      expect(i.kcal, i.id).toBeGreaterThan(0);
+      if (i.kcal < 20) continue; // black coffee and tea: a few kcal, so rounding swamps the ratio
+      const fromMacros = 4 * i.protein + 4 * i.carbs + 9 * i.fat;
+      expect(Math.abs(fromMacros - i.kcal) / i.kcal, i.id).toBeLessThan(0.25);
+    }
+  });
+});
+
 describe("water", () => {
   it("sums mixed units in the display unit without changing stored amounts", () => {
     const logs = [{ amount: 16.9, unit: "oz" }, { amount: 500, unit: "ml" }];
@@ -24,6 +47,20 @@ describe("water", () => {
     expect(waterTotal(logs, "ml")).toBe(999.8);
     expect(waterUnitFor("lb")).toBe("oz");
     expect(waterUnitFor("kg")).toBe("ml");
+  });
+
+  it("removes water newest first, deleting whole logs and shortening the last", () => {
+    const logs = [
+      { id: "c", amount: 8, unit: "oz" },
+      { id: "b", amount: 500, unit: "ml" },
+      { id: "a", amount: 16.9, unit: "oz" },
+    ];
+    expect(waterRemoval(logs, 8, "oz")).toEqual({ remove: ["c"], shorten: [] });
+    // 8 oz + 500 ml (16.9 oz) = 24.9 oz; 30 oz takes both and 5.1 oz off the oldest.
+    expect(waterRemoval(logs, 30, "oz")).toEqual({ remove: ["c", "b"], shorten: [{ id: "a", amount: 11.8 }] });
+    // 4 oz off a 500 ml log leaves it in ml.
+    expect(waterRemoval(logs.slice(1), 4, "oz")).toEqual({ remove: [], shorten: [{ id: "b", amount: 381.7 }] });
+    expect(waterRemoval(logs, 1000, "oz").remove).toEqual(["c", "b", "a"]);
   });
 
   it("sets the daily goal from body weight, plus half a litre on training days", () => {

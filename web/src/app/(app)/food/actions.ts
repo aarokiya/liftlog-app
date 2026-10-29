@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/supabase/server";
-import { MEALS, normalizeBarcode } from "@/lib/food";
+import { MEALS, localDate, normalizeBarcode, waterRemoval } from "@/lib/food";
+import { userTimeZone } from "@/lib/time/server";
 import { redirect } from "next/navigation";
 
 const num = (v: FormDataEntryValue | null) => {
@@ -39,6 +40,23 @@ export async function logWater(formData: FormData) {
   const unit = String(formData.get("unit"));
   if (!(amount > 0 && amount <= 5000) || !["oz", "ml"].includes(unit)) return;
   await supabase.from("water_logs").insert({ drank_at: new Date().toISOString(), amount, unit });
+  revalidatePath("/food");
+}
+
+/** Takes an amount off today's water, newest log first (for water logged by mistake). */
+export async function removeWater(formData: FormData) {
+  const { supabase } = await requireUser();
+  const amount = Number(formData.get("amount"));
+  const unit = String(formData.get("unit"));
+  if (!(amount > 0 && amount <= 5000) || (unit !== "oz" && unit !== "ml")) return;
+  const tz = await userTimeZone();
+  const today = localDate(new Date(), tz);
+  const since = new Date(Date.now() - 36 * 3600 * 1000).toISOString();
+  const { data } = await supabase.from("water_logs").select("id, drank_at, amount, unit").is("deleted_at", null).gte("drank_at", since).order("drank_at", { ascending: false });
+  const logs = (data ?? []).filter((l) => localDate(new Date(l.drank_at), tz) === today).map((l) => ({ ...l, amount: Number(l.amount) }));
+  const { remove, shorten } = waterRemoval(logs, amount, unit);
+  if (remove.length) await supabase.from("water_logs").update({ deleted_at: new Date().toISOString() }).in("id", remove);
+  for (const s of shorten) await supabase.from("water_logs").update({ amount: s.amount }).eq("id", s.id);
   revalidatePath("/food");
 }
 

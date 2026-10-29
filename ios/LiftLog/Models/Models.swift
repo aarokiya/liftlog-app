@@ -356,6 +356,8 @@ final class RoutineExercise: SyncedModel {
     var repMax: Int?
     var restSeconds: Int?
     var notes: String?
+    /// What to clip on, e.g. "Rope · top pulley"; shown under the name during the workout.
+    var attachment: String?
     var updatedAt: Date
     var deletedAt: Date?
     var needsSync: Bool

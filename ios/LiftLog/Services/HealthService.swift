@@ -4,8 +4,8 @@ import LiftKit
 import Observation
 import SwiftData
 
-/// Apple Health: finished workouts go to Health as strength workouts; weight, body fat, waist, height and
-/// daily nutrition totals (e.g. from MyFitnessPal) come back.
+/// Apple Health: finished workouts go to Health as strength workouts; weight, body fat, waist, height,
+/// daily nutrition totals (e.g. from MyFitnessPal) and daily steps come back.
 @MainActor
 @Observable
 final class HealthService {
@@ -26,7 +26,7 @@ final class HealthService {
             HKQuantityType(.bodyMass), HKQuantityType(.height), HKQuantityType(.bodyFatPercentage),
             HKQuantityType(.waistCircumference), HKQuantityType(.leanBodyMass), HKObjectType.workoutType(),
             HKQuantityType(.dietaryEnergyConsumed), HKQuantityType(.dietaryProtein),
-            HKQuantityType(.dietaryCarbohydrates), HKQuantityType(.dietaryFatTotal),
+            HKQuantityType(.dietaryCarbohydrates), HKQuantityType(.dietaryFatTotal), HKQuantityType(.stepCount),
         ]
     }
 
@@ -51,9 +51,10 @@ final class HealthService {
     /// Runs both directions; safe to call often.
     func sync(context: ModelContext) async {
         guard isEnabled, Self.isAvailable else { return }
-        if !defaults.bool(forKey: Prefs.healthNutritionAsked) {
-            // Users who enabled Health before nutrition was added get asked for the new types once.
+        if !defaults.bool(forKey: Prefs.healthNutritionAsked) || !defaults.bool(forKey: Prefs.healthStepsAsked) {
+            // Users who enabled Health before nutrition or steps were added get asked for the new types once.
             defaults.set(true, forKey: Prefs.healthNutritionAsked)
+            defaults.set(true, forKey: Prefs.healthStepsAsked)
             try? await store.requestAuthorization(toShare: shareTypes, read: readTypes)
         }
         await exportWorkouts(context: context)
@@ -140,28 +141,38 @@ final class HealthService {
     /// keyed by the start of each day; empty if none or not allowed.
     func dailyNutrition(from start: Date, to end: Date) async -> [Date: Nutrition] {
         guard isEnabled, Self.isAvailable, end > start else { return [:] }
-        let from = Calendar.current.startOfDay(for: start)
-        func daily(_ id: HKQuantityTypeIdentifier, _ unit: HKUnit) async -> [Date: Double] {
-            let query = HKStatisticsCollectionQueryDescriptor(
-                predicate: .quantitySample(type: HKQuantityType(id), predicate: HKQuery.predicateForSamples(withStart: from, end: end)),
-                options: .cumulativeSum, anchorDate: from, intervalComponents: DateComponents(day: 1)
-            )
-            guard let collection = try? await query.result(for: store) else { return [:] }
-            var values: [Date: Double] = [:]
-            collection.enumerateStatistics(from: from, to: end) { statistics, _ in
-                if let value = statistics.sumQuantity()?.doubleValue(for: unit), value > 0 { values[statistics.startDate] = value }
-            }
-            return values
-        }
-        let kcal = await daily(.dietaryEnergyConsumed, .kilocalorie())
-        let protein = await daily(.dietaryProtein, .gram())
-        let carbs = await daily(.dietaryCarbohydrates, .gram())
-        let fat = await daily(.dietaryFatTotal, .gram())
+        let kcal = await daily(.dietaryEnergyConsumed, .kilocalorie(), from: start, to: end)
+        let protein = await daily(.dietaryProtein, .gram(), from: start, to: end)
+        let carbs = await daily(.dietaryCarbohydrates, .gram(), from: start, to: end)
+        let fat = await daily(.dietaryFatTotal, .gram(), from: start, to: end)
         var result: [Date: Nutrition] = [:]
         for day in Set(kcal.keys).union(protein.keys).union(carbs.keys).union(fat.keys) {
             result[day] = Nutrition(kcal: kcal[day] ?? 0, protein: protein[day] ?? 0, carbs: carbs[day] ?? 0, fat: fat[day] ?? 0)
         }
         return result
+    }
+
+    /// Daily step counts from `start` up to `end`, keyed by the start of each day; empty if none or not allowed. Health
+    /// merges the iPhone's and an Apple Watch's counts, so a step isn't counted twice. They stay on the phone.
+    func dailySteps(from start: Date, to end: Date) async -> [Date: Double] {
+        guard isEnabled, Self.isAvailable, end > start else { return [:] }
+        return await daily(.stepCount, .count(), from: start, to: end)
+    }
+
+    /// A quantity's daily sums from the start of `start`'s day up to `end`, keyed by the start of each day; days with
+    /// nothing are left out.
+    private func daily(_ id: HKQuantityTypeIdentifier, _ unit: HKUnit, from start: Date, to end: Date) async -> [Date: Double] {
+        let from = Calendar.current.startOfDay(for: start)
+        let query = HKStatisticsCollectionQueryDescriptor(
+            predicate: .quantitySample(type: HKQuantityType(id), predicate: HKQuery.predicateForSamples(withStart: from, end: end)),
+            options: .cumulativeSum, anchorDate: from, intervalComponents: DateComponents(day: 1)
+        )
+        guard let collection = try? await query.result(for: store) else { return [:] }
+        var values: [Date: Double] = [:]
+        collection.enumerateStatistics(from: from, to: end) { statistics, _ in
+            if let value = statistics.sumQuantity()?.doubleValue(for: unit), value > 0 { values[statistics.startDate] = value }
+        }
+        return values
     }
 
     private func importBody(context: ModelContext) async {

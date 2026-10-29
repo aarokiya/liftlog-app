@@ -23,7 +23,7 @@ export default function PrivacyPage() {
 
       <h2 className="text-base font-semibold">Apple Health</h2>
       <p>
-        If you turn on Apple Health, the app reads weight, height, body fat, waist and daily nutrition on your phone and writes workouts and
+        If you turn on Apple Health, the app reads weight, height, body fat, waist, daily nutrition and steps on your phone and writes workouts and
         weight. Data read from Health is never uploaded. Only what you log in LiftLog syncs.
       </p>
 

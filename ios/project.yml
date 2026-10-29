@@ -46,7 +46,7 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
         NSCameraUsageDescription: LiftLog uses the camera to scan food barcodes.
-        NSHealthShareUsageDescription: LiftLog reads your weight, height, body fat and waist size to track body composition, and daily calories and macros (e.g. from MyFitnessPal) for the Food screen.
+        NSHealthShareUsageDescription: LiftLog reads your weight, height, body fat and waist size to track body composition, and daily calories, macros (e.g. from MyFitnessPal) and steps for the Food screen.
         NSHealthUpdateUsageDescription: LiftLog saves your finished workouts and logged body weight to Apple Health.
         SUPABASE_URL: $(SUPABASE_URL)
         SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)

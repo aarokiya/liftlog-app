@@ -1,10 +1,15 @@
 import XCTest
 
-/// Walks the Food flow for the CI screen recording: dining hall → today's menu → staples → outside food.
+/// Walks the Food flow for the CI screen recording: Georgia Tech → a dining hall's menu → staples → Panda Express → outside food.
 final class FoodDemoTests: XCTestCase {
     private let app = XCUIApplication()
 
     private func pause(_ seconds: TimeInterval = 1.2) { Thread.sleep(forTimeInterval: seconds) }
+
+    /// A campus place's row; its label also has the kind and location after the name.
+    private func place(_ name: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", name)).firstMatch
+    }
 
     private func logFirst(containing text: String, moreServings: Bool = false) {
         let row = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", text)).firstMatch
@@ -37,9 +42,9 @@ final class FoodDemoTests: XCTestCase {
 
         app.tabBars.buttons["Food"].tap()
         pause(2)
-        app.buttons["Dining hall"].tap()
+        app.buttons["Georgia Tech"].tap()
         pause()
-        app.buttons["North Ave Dining Hall"].tap()
+        place("North Ave Dining Hall").tap()
         _ = app.staticTexts["Loading today's menu"].waitForNonExistence(timeout: 20)
         pause(2)
         app.swipeUp()
@@ -63,6 +68,14 @@ final class FoodDemoTests: XCTestCase {
         app.swipeUp()
         app.swipeUp()
         pause(1.5)
+        back()
+        pause()
+        // Another campus place: the Student Center's Panda Express.
+        let panda = place("Panda Express")
+        for _ in 0..<4 where !panda.isHittable { app.swipeUp() }
+        panda.tap()
+        pause()
+        logFirst(containing: "kcal")
         back()
         back()
         pause(2)

@@ -1,4 +1,5 @@
 import arnold from "../../../../shared/programs/arnold.json";
+import lkc from "../../../../shared/programs/lkc.json";
 import ppl from "../../../../shared/programs/ppl.json";
 import pplul from "../../../../shared/programs/pplul.json";
 import ul from "../../../../shared/programs/ul.json";
@@ -8,9 +9,12 @@ export interface ProgramExercise {
   /** Built-in exercise number (see supabase/seed.sql) or a full exercise uuid. */
   exercise: number | string;
   sets: number;
-  reps: [number, number];
+  /** [min, max]; cardio (minutes) has none. */
+  reps?: [number, number];
   rest?: number;
   notes?: string;
+  /** What to clip on, e.g. "Rope · top pulley". */
+  attachment?: string;
 }
 
 export interface ProgramDay {
@@ -27,7 +31,7 @@ export interface Program {
   days: ProgramDay[];
 }
 
-export const TEMPLATES = [ppl, ul, pplul, arnold] as Program[];
+export const TEMPLATES = [ppl, ul, pplul, arnold, lkc] as Program[];
 
 /** Display name for a program id: the template's name, or an imported program's slug in title case. */
 export function programLabel(id: string): string {

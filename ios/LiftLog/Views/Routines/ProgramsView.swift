@@ -7,9 +7,12 @@ struct ProgramTemplate: Decodable, Identifiable {
     struct Item: Decodable {
         let exercise: ExerciseRef
         let sets: Int
-        let reps: [Int]
+        /// [min, max]; cardio (minutes) has none.
+        let reps: [Int]?
         let rest: Int?
         let notes: String?
+        /// What to clip on, e.g. "Rope · top pulley".
+        let attachment: String?
     }
 
     struct Day: Decodable {
@@ -47,7 +50,7 @@ struct ProgramTemplate: Decodable, Identifiable {
 }
 
 enum ProgramLibrary {
-    static let templates: [ProgramTemplate] = ["ppl", "ul", "pplul", "arnold"].compactMap { name in
+    static let templates: [ProgramTemplate] = ["ppl", "ul", "pplul", "arnold", "lkc"].compactMap { name in
         guard let url = Bundle.main.url(forResource: name, withExtension: "json"),
               let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(ProgramTemplate.self, from: data)
@@ -64,10 +67,12 @@ enum ProgramLibrary {
         return routines.filter { $0.program == program }.sorted { ($0.programDay ?? 0) < ($1.programDay ?? 0) }
     }
 
-    /// The day after the most recent workout started from one of `days`. Each calendar day that has gone by since then
-    /// uses up a rest day, so resting without logging cardio doesn't hold up the rotation.
+    /// A 7-day program follows the calendar: today's weekday's routine (day 0 is Monday), rest day included. Otherwise
+    /// it's the day after the most recent workout started from one of `days`, and each calendar day that has gone by
+    /// since then uses up a rest day, so resting without logging cardio doesn't hold up the rotation.
     @MainActor
     static func upNext(in days: [Routine], context: ModelContext) -> Routine? {
+        if days.count == 7 { return days[WeekStrip.todayIndex] }
         let ids = days.map(\.id)
         var descriptor = FetchDescriptor<Workout>(
             predicate: #Predicate { $0.deletedAt == nil && $0.routineId != nil },
@@ -99,12 +104,13 @@ enum ProgramLibrary {
             context.insert(routine)
             for (index, item) in d.exercises.enumerated() {
                 guard let id = item.exercise.uuid, let exercise = byId[id] else { continue }
-                let entry = RoutineExercise(position: index, targetSets: item.sets, repMin: item.reps.first, repMax: item.reps.last)
+                let entry = RoutineExercise(position: index, targetSets: item.sets, repMin: item.reps?.first, repMax: item.reps?.last)
                 context.insert(entry)
                 entry.routine = routine
                 entry.exercise = exercise
                 entry.restSeconds = item.rest ?? exercise.defaultRestSeconds
                 entry.notes = item.notes
+                entry.attachment = item.attachment
             }
         }
         try? context.save()

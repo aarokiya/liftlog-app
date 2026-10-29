@@ -43,14 +43,14 @@ private struct LogFoodPresenter: ViewModifier {
     }
 }
 
-/// Where food comes from: the dining hall (Georgia Tech only), outside food and the foods databank. Used to log food
-/// and to pick a replacement for a logged one.
+/// Where food comes from: Georgia Tech's dining and nearby restaurants (campus = gatech only), outside food and the
+/// foods databank. Used to log food and to pick a replacement for a logged one.
 struct AddFoodLinks: View {
     @AppStorage(Prefs.campus) private var campus = ""
 
     var body: some View {
         if campus == "gatech" {
-            NavigationLink { HallPicker() } label: { Label("Dining hall", systemImage: "building.columns") }
+            NavigationLink { CampusView() } label: { Label("Georgia Tech", systemImage: "building.columns") }
         }
         NavigationLink { OutsideFoodView() } label: { Label("Outside food", systemImage: "takeoutbag.and.cup.and.straw") }
         NavigationLink { FoodSearchView() } label: { Label("Search all foods / scan barcode", systemImage: "magnifyingglass") }

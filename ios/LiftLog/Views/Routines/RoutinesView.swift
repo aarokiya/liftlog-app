@@ -152,6 +152,13 @@ struct RoutineItemRow: View {
     @Query(filter: #Predicate<Exercise> { $0.deletedAt == nil }) private var exercises: [Exercise]
     @AppStorage(Prefs.campus) private var campus = ""
 
+    private var attachment: Binding<String> {
+        Binding(
+            get: { item.attachment ?? "" },
+            set: { item.attachment = $0.isEmpty ? nil : String($0.prefix(80)); item.touch() }
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -188,6 +195,11 @@ struct RoutineItemRow: View {
                     .keyboardType(.numberPad).textFieldStyle(.roundedBorder).frame(width: 64)
             }
             .font(.subheadline)
+            if item.exercise?.equipment == "cable" || item.attachment != nil {
+                TextField("Attachment, e.g. Rope · top pulley", text: attachment)
+                    .font(.subheadline)
+                    .textFieldStyle(.roundedBorder)
+            }
         }
     }
 }

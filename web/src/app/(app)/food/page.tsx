@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { baseTargets, bodyPlan, dailyTargets, formulaMaintenance, learnedMaintenance, planStartWeight } from "@/lib/aesthetics";
-import { FAST_FOOD, HALLS, RESTAURANTS, SNACK_GROUPS, STAPLES, WATER_QUICK, currentMeal, diningMenu, fromRow, groupBy, localDate, normalizeBarcode, parseOpenFoodFacts, totals, waterGoal, waterTotal, waterUnitFor, brandFoods, uniqueFoods, type FoodItem, type FoodRow } from "@/lib/food";
+import { CAMPUS, CAMPUS_AREAS, FAST_FOOD, HALLS, RESTAURANTS, SNACK_GROUPS, STAPLES, WATER_QUICK, currentMeal, diningMenu, fromRow, groupBy, localDate, normalizeBarcode, parseOpenFoodFacts, totals, waterGoal, waterTotal, waterUnitFor, brandFoods, uniqueFoods, placeMenu, type FoodItem, type FoodRow } from "@/lib/food";
 import { convert, dayNumber } from "@/lib/stats";
 import { getProfile } from "@/lib/data";
 import { requireUser } from "@/lib/supabase/server";
 import { userTimeZone } from "@/lib/time/server";
-import { createFood, deleteFood, deleteWater, logFood, logWater } from "./actions";
+import { createFood, deleteFood, deleteWater, logFood, logWater, removeWater } from "./actions";
 
-type Params = { tab?: string; hall?: string; meal?: string; q?: string; brand?: string; barcode?: string; snack?: string };
+type Params = { tab?: string; hall?: string; meal?: string; q?: string; brand?: string; barcode?: string; snack?: string; area?: string; place?: string; water?: string };
 
 function FoodRows({ items, source, place, meal }: { items: FoodItem[]; source: string; place?: string; meal: string }) {
   return (
@@ -26,7 +26,8 @@ function FoodRows({ items, source, place, meal }: { items: FoodItem[]; source: s
             <div className="min-w-0 flex-1">
               <div className="truncate">{item.name}</div>
               <div className="text-xs text-muted">
-                {item.serving} · {Math.round(item.kcal)} kcal · {item.protein} g protein
+                {item.serving} · {item.estimated ? "≈ " : ""}
+                {Math.round(item.kcal)} kcal · {item.protein} g protein
               </div>
             </div>
             <input name="servings" type="number" step="0.5" min="0.5" defaultValue={1} className="input w-16" aria-label="Servings" />
@@ -38,6 +39,37 @@ function FoodRows({ items, source, place, meal }: { items: FoodItem[]; source: s
   );
 }
 
+/** Log a food by its macros; `place` prefills "Where". */
+function CustomFoodForm({ place, open }: { place?: string; open?: boolean }) {
+  return (
+    <details open={open}>
+      <summary className="cursor-pointer text-sm font-medium">Custom food (enter macros)</summary>
+      <form action={logFood} className="mt-2 grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
+        <input type="hidden" name="source" value="custom" />
+        <input type="hidden" name="meal" value={currentMeal()} />
+        <input name="name" required placeholder="What did you eat?" className="input col-span-2" />
+        <input name="place" defaultValue={place} placeholder="Where (optional)" className="input col-span-2" />
+        <input name="kcal" type="number" step="1" placeholder="Calories" className="input" />
+        <input name="protein" type="number" step="0.1" placeholder="Protein g" className="input" />
+        <input name="carbs" type="number" step="0.1" placeholder="Carbs g" className="input" />
+        <input name="fat" type="number" step="0.1" placeholder="Fat g" className="input" />
+        <button className="btn col-span-2 md:col-span-4">Log</button>
+      </form>
+    </details>
+  );
+}
+
+const AREA_NOTES: Record<string, string> = {
+  "Food trucks": "Trucks rotate on Tech Green; dining.gatech.edu has today's schedule.",
+  "Community Market": "Pop-up vendors on Tech Walkway.",
+  "Near campus": "Off campus, nearest first.",
+};
+
+/** Each menu brand and the place it's logged under: the first one serving it, on campus before nearby. */
+const PLACE_BY_MENU = new Map<string, (typeof CAMPUS)[number]>();
+for (const p of CAMPUS) if (p.menu && !PLACE_BY_MENU.has(p.menu)) PLACE_BY_MENU.set(p.menu, p);
+const CAMPUS_ITEMS = [...PLACE_BY_MENU.keys()].sort().flatMap(placeMenu);
+
 export default async function FoodPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
   const { supabase, user } = await requireUser();
@@ -48,9 +80,13 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
   const gatech = profile.campus === "gatech";
   const tab = params.tab === "outside" || params.tab === "search" ? params.tab : gatech ? "dining" : "outside";
   const hall = HALLS.find((h) => h.id === params.hall);
+  const place = tab === "dining" && !hall ? CAMPUS.find((p) => !p.hall && p.name === params.place && (!params.area || p.area === params.area)) : undefined;
+  const placeItems = place?.menu ? placeMenu(place.menu) : [];
+  const placeMatch = (p: (typeof CAMPUS)[number]) => q.split(/\s+/).every((w) => `${p.name} ${p.kind ?? ""}`.toLowerCase().includes(w));
   const meal = params.meal ?? currentMeal();
   const q = (params.q ?? "").trim().toLowerCase();
-  const match = (i: FoodItem) => !q || i.name.toLowerCase().includes(q) || (i.brand ?? "").toLowerCase().includes(q);
+  // Every word of the search appears in the name or brand, in any order.
+  const match = (i: FoodItem) => q.split(/\s+/).every((w) => `${i.brand ?? ""} ${i.name}`.toLowerCase().includes(w));
 
   const since = new Date(Date.now() - 36 * 3600 * 1000).toISOString();
   // 34 local days of intake (plus a day of slack for the time zone) for learned maintenance and carryover.
@@ -104,6 +140,8 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
   const goalWater = w ? waterGoal(convert(Number(w.body_weight), w.unit === "kg" ? "kg" : "lb", "kg"), trainedToday, waterUnit) : null;
   const waterSoFar = waterTotal(water, waterUnit);
   const waterHit = goalWater !== null && waterSoFar >= goalWater;
+  // The water buttons take water away instead (for water logged by mistake).
+  const removingWater = params.water === "remove";
 
   let menu: FoodItem[] = [];
   let menuError = false;
@@ -182,7 +220,7 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
       </section>
 
       <div className="flex gap-2">
-        {gatech && <Link href={link({ tab: "dining" })} className={chip(tab === "dining")}>Dining hall</Link>}
+        {gatech && <Link href={link({ tab: "dining" })} className={chip(tab === "dining")}>Georgia Tech</Link>}
         <Link href={link({ tab: "outside" })} className={chip(tab === "outside")}>Outside food</Link>
         <Link href={link({ tab: "search" })} className={chip(tab === "search")}>Search all foods</Link>
       </div>
@@ -224,19 +262,27 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
 
       {tab === "search" ? null : tab === "dining" ? (
         <section className="card grid grid-cols-1 gap-3">
-          <div className="flex flex-wrap gap-2">
-            {HALLS.map((h) => (
-              <Link key={h.id} href={link({ hall: h.id, meal })} className={chip(h.id === hall?.id)}>{h.name}</Link>
-            ))}
-          </div>
+          {hall || place ? (
+            <Link href={link({ tab: "dining" })} className="text-sm text-accent">
+              ← All Georgia Tech places
+            </Link>
+          ) : (
+            <form className="flex gap-2">
+              <input type="hidden" name="tab" value="dining" />
+              <input name="q" defaultValue={params.q} placeholder="Search places and menus" className="input flex-1" />
+              <button className="btn">Search</button>
+            </form>
+          )}
           {hall ? (
             <>
+              <h2 className="font-semibold">{hall.name}</h2>
               <div className="flex flex-wrap gap-2">
                 {hall.meals.map((m) => (
-                  <Link key={m} href={link({ hall: hall.id, meal: m })} className={chip(m === meal)}>{m[0].toUpperCase() + m.slice(1)}</Link>
+                  <Link key={m} href={link({ tab: "dining", hall: hall.id, meal: m })} className={chip(m === meal)}>{m[0].toUpperCase() + m.slice(1)}</Link>
                 ))}
               </div>
               <form className="flex gap-2">
+                <input type="hidden" name="tab" value="dining" />
                 <input type="hidden" name="hall" value={hall.id} />
                 <input type="hidden" name="meal" value={meal} />
                 <input name="q" defaultValue={params.q} placeholder="Search the menu" className="input flex-1" />
@@ -257,8 +303,81 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
                 </div>
               ))}
             </>
+          ) : place ? (
+            <>
+              <div>
+                <h2 className="font-semibold">{place.name}</h2>
+                <p className="text-xs text-muted">{[place.kind, place.area, place.detail].filter(Boolean).join(" · ")}</p>
+              </div>
+              {placeItems.length > 0 ? (
+                groupBy(placeItems, (i) => i.station ?? "Menu").map(([station, items]) => (
+                  <div key={station}>
+                    <h3 className="text-sm font-semibold">{station}</h3>
+                    <FoodRows items={items} source={place.area === "Near campus" ? "outside" : "dining"} place={place.name} meal={currentMeal()} />
+                  </div>
+                ))
+              ) : (
+                <>
+                  <p className="text-sm text-muted">
+                    {place.note ?? `${place.name} doesn't publish a menu with nutrition. Log it as a custom food, or find a similar dish in Search all foods.`}
+                  </p>
+                  <CustomFoodForm place={place.name} open />
+                </>
+              )}
+              {placeItems.some((i) => i.estimated) && (
+                <p className="text-xs text-muted">≈ {place.name} doesn&apos;t publish nutrition, so these are estimated from USDA ingredients and typical portions.</p>
+              )}
+            </>
+          ) : q ? (
+            <>
+              {CAMPUS.some(placeMatch) && (
+                <div className="flex flex-wrap gap-2">
+                  {CAMPUS.filter(placeMatch).map((p) => (
+                    <Link key={`${p.area}|${p.name}`} href={p.hall ? link({ tab: "dining", hall: p.hall, meal }) : link({ tab: "dining", area: p.area, place: p.name })} className={chip(false)}>
+                      {p.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {(["On campus", "Near campus"] as const).map((where) => {
+                const items = CAMPUS_ITEMS.filter((i) => match(i) && (PLACE_BY_MENU.get(i.brand ?? "")?.area === "Near campus") === (where === "Near campus"));
+                return (
+                  items.length > 0 && (
+                    <div key={where}>
+                      <h3 className="text-sm font-semibold">
+                        {where}
+                        {items.length > 100 ? ` · first 100 of ${items.length}, refine the search` : ""}
+                      </h3>
+                      <FoodRows
+                        items={items.slice(0, 100).map((i) => ({ ...i, name: `${i.name} · ${PLACE_BY_MENU.get(i.brand ?? "")?.name ?? i.brand}`, brand: PLACE_BY_MENU.get(i.brand ?? "")?.name ?? i.brand }))}
+                        source={where === "Near campus" ? "outside" : "dining"}
+                        meal={currentMeal()}
+                      />
+                    </div>
+                  )
+                );
+              })}
+              {!CAMPUS_ITEMS.some(match) && <p className="text-sm text-muted">No menu items match.</p>}
+            </>
           ) : (
-            <p className="text-sm text-muted">Pick a dining hall to see today&apos;s menu.</p>
+            CAMPUS_AREAS.map((area) => (
+              <div key={area} className="grid gap-2">
+                <h3 className="text-sm font-semibold">{area}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {CAMPUS.filter((p) => p.area === area).map((p) => (
+                    <Link
+                      key={p.name}
+                      href={p.hall ? link({ tab: "dining", hall: p.hall, meal }) : link({ tab: "dining", area: p.area, place: p.name })}
+                      title={[p.kind, p.detail].filter(Boolean).join(" · ")}
+                      className={chip(false)}
+                    >
+                      {p.name}
+                    </Link>
+                  ))}
+                </div>
+                {AREA_NOTES[area] && <p className="text-xs text-muted">{AREA_NOTES[area]}</p>}
+              </div>
+            ))
           )}
         </section>
       ) : (
@@ -310,20 +429,7 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
               )}
             </>
           )}
-          <details>
-            <summary className="cursor-pointer text-sm font-medium">Custom food (enter macros)</summary>
-            <form action={logFood} className="mt-2 grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
-              <input type="hidden" name="source" value="custom" />
-              <input type="hidden" name="meal" value={currentMeal()} />
-              <input name="name" required placeholder="What did you eat?" className="input col-span-2" />
-              <input name="place" placeholder="Where (optional)" className="input col-span-2" />
-              <input name="kcal" type="number" step="1" placeholder="Calories" className="input" />
-              <input name="protein" type="number" step="0.1" placeholder="Protein g" className="input" />
-              <input name="carbs" type="number" step="0.1" placeholder="Carbs g" className="input" />
-              <input name="fat" type="number" step="0.1" placeholder="Fat g" className="input" />
-              <button className="btn col-span-2 md:col-span-4">Log</button>
-            </form>
-          </details>
+          <CustomFoodForm />
         </section>
       )}
 
@@ -355,11 +461,19 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
       <section className="card grid grid-cols-1 gap-2">
         <div className="flex items-baseline justify-between">
           <h2 className="font-semibold">Water</h2>
-          <span className="text-xl font-semibold tabular-nums">
-            {waterSoFar} <span className="text-sm font-normal text-muted">{waterUnit} today</span>
-            {goalWater !== null && (
-              <span className={`ml-3 text-sm font-semibold ${waterHit ? "text-green-500" : "text-red-500"}`}>goal {goalWater}</span>
-            )}
+          <span className="flex items-baseline gap-3 text-xl font-semibold tabular-nums">
+            <span>
+              {waterSoFar} <span className="text-sm font-normal text-muted">{waterUnit} today</span>
+            </span>
+            {goalWater !== null && <span className={`text-sm font-semibold ${waterHit ? "text-green-500" : "text-red-500"}`}>goal {goalWater}</span>}
+            <Link
+              href={link({ ...params, water: removingWater ? undefined : "remove" })}
+              aria-label={removingWater ? "Back to adding water" : "Remove water"}
+              title={removingWater ? "Back to adding water" : "Remove water"}
+              className={`grid size-7 place-items-center self-center rounded-full border text-base ${removingWater ? "border-accent text-accent" : "border-red-500 text-red-500"}`}
+            >
+              {removingWater ? "+" : "−"}
+            </Link>
           </span>
         </div>
         {goalWater !== null ? (
@@ -373,16 +487,19 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
         )}
         <div className="flex flex-wrap gap-2">
           {WATER_QUICK[waterUnit].map((amount) => (
-            <form key={amount} action={logWater}>
+            <form key={amount} action={removingWater ? removeWater : logWater}>
               <input type="hidden" name="amount" value={amount} />
               <input type="hidden" name="unit" value={waterUnit} />
-              <button className="btn">+{amount} {waterUnit}</button>
+              <button className={`btn ${removingWater ? "text-red-500" : ""}`} disabled={removingWater && water.length === 0}>
+                {removingWater ? "−" : "+"}
+                {amount} {waterUnit}
+              </button>
             </form>
           ))}
-          <form action={logWater} className="flex gap-2">
+          <form action={removingWater ? removeWater : logWater} className="flex gap-2">
             <input type="hidden" name="unit" value={waterUnit} />
             <input name="amount" type="number" step="0.1" min="0.1" max="5000" required placeholder={`Other (${waterUnit})`} className="input w-32" />
-            <button className="btn">Add</button>
+            <button className={`btn ${removingWater ? "text-red-500" : ""}`}>{removingWater ? "Remove" : "Add"}</button>
           </form>
         </div>
         {water.length > 0 && (

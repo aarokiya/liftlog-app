@@ -12,6 +12,7 @@ interface RoutineExercise {
   rep_max: number | null;
   rest_seconds: number | null;
   notes: string | null;
+  attachment: string | null;
   deleted_at: string | null;
   exercise_id: string;
   exercises: { name: string } | null;
@@ -23,7 +24,7 @@ export default async function RoutinePage({ params }: { params: Promise<{ id: st
   const [{ data: routine }, exercises, profile] = await Promise.all([
     supabase
       .from("routines")
-      .select("id, name, notes, routine_exercises(id, exercise_id, position, target_sets, rep_min, rep_max, rest_seconds, notes, deleted_at, exercises(name))")
+      .select("id, name, notes, routine_exercises(id, exercise_id, position, target_sets, rep_min, rep_max, rest_seconds, notes, attachment, deleted_at, exercises(name))")
       .eq("id", id)
       .single(),
     getExercises(supabase),
@@ -67,6 +68,7 @@ export default async function RoutinePage({ params }: { params: Promise<{ id: st
             Rest (s)
             <input name="rest_seconds" type="number" min={0} defaultValue={x.rest_seconds ?? ""} className="input w-20" />
           </label>
+          <input name="attachment" defaultValue={x.attachment ?? ""} maxLength={80} placeholder="Attachment (e.g. Rope · top pulley)" className="input w-56" />
           <input name="notes" defaultValue={x.notes ?? ""} placeholder="Notes" className="input flex-1" />
           <button className="btn-ghost">Save</button>
           <button formAction={removeRoutineExercise} className="text-xs text-muted hover:text-red-500">

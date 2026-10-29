@@ -75,7 +75,8 @@ final class SyncService {
                 return RoutineExerciseRow(
                     id: x.id, user_id: userId, routine_id: routine.id, exercise_id: exercise.id, position: x.position,
                     superset_group: .init(x.supersetGroup), target_sets: x.targetSets, rep_min: .init(x.repMin),
-                    rep_max: .init(x.repMax), rest_seconds: .init(x.restSeconds), notes: .init(x.notes), deleted_at: .init(x.deletedAt)
+                    rep_max: .init(x.repMax), rest_seconds: .init(x.restSeconds), notes: .init(x.notes), attachment: .init(x.attachment),
+                    deleted_at: .init(x.deletedAt)
                 )
             }
             try await push("workouts", try context.fetch(FetchDescriptor<Workout>(predicate: #Predicate { $0.needsSync }))) { w in
@@ -205,6 +206,7 @@ final class SyncService {
                     x.repMax = row.rep_max.value
                     x.restSeconds = row.rest_seconds.value
                     x.notes = row.notes.value
+                    x.attachment = row.attachment.value
                     applied(x, row, deletedAt: row.deleted_at.value)
                 }
             }

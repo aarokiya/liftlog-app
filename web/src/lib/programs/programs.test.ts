@@ -6,8 +6,8 @@ const seed = readFileSync(new URL("../../../../supabase/seed.sql", import.meta.u
 const seedIds = new Set([...seed.matchAll(/'(0{8}-0{4}-4000-8000-\d{12})'/g)].map((m) => m[1]));
 
 describe("program templates", () => {
-  it("cover PPL, UL, PPLUL and Arnold with seeded exercises", () => {
-    expect(TEMPLATES.map((t) => t.split)).toEqual(["PPL", "UL", "PPLUL", "Arnold"]);
+  it("cover PPL, UL, PPLUL, Arnold and LKC with seeded exercises", () => {
+    expect(TEMPLATES.map((t) => t.split)).toEqual(["PPL", "UL", "PPLUL", "Arnold", "LKC"]);
     for (const t of TEMPLATES) {
       for (const day of t.days) for (const e of day.exercises) expect(seedIds.has(exerciseUuid(e.exercise))).toBe(true);
     }

@@ -74,6 +74,7 @@ struct RoutineExerciseRow: RemoteRow {
     var rep_max: Nullable<Int>
     var rest_seconds: Nullable<Int>
     var notes: Nullable<String>
+    var attachment: Nullable<String>
     var deleted_at: Nullable<Date>
     var updated_at: Date?
 }

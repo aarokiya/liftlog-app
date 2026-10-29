@@ -32,6 +32,7 @@ enum Prefs {
     static let profileNeedsSync = "profileNeedsSync"
     static let healthEnabled = "healthEnabled"
     static let healthNutritionAsked = "healthNutritionAsked"
+    static let healthStepsAsked = "healthStepsAsked"
     static let heightCm = "heightCm"
     static let healthHeightSeenAt = "healthHeightSeenAt"
     /// Set once the signed-in account's profile has been pulled; until then local changes don't overwrite it.

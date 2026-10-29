@@ -84,6 +84,9 @@ enum BuiltInExercises {
         Seed(id: "00000000-0000-4000-8000-000000000069", name: "Hammer Curl (Cable)", kind: "weight_reps", equipment: "cable", primary: "biceps", secondary: ["forearms"]),
         Seed(id: "00000000-0000-4000-8000-000000000070", name: "Stairmaster", kind: "duration", equipment: "cardio_machine", primary: "cardio", secondary: []),
         Seed(id: "00000000-0000-4000-8000-000000000071", name: "Incline Walk (Treadmill)", kind: "duration", equipment: "cardio_machine", primary: "cardio", secondary: []),
+        Seed(id: "00000000-0000-4000-8000-000000000072", name: "Wrist Curl (Cable)", kind: "weight_reps", equipment: "cable", primary: "forearms", secondary: []),
+        Seed(id: "00000000-0000-4000-8000-000000000073", name: "Skull Crusher (Cable)", kind: "weight_reps", equipment: "cable", primary: "triceps", secondary: []),
+        Seed(id: "00000000-0000-4000-8000-000000000074", name: "Decline Crunch", kind: "weighted_bodyweight", equipment: "bodyweight", primary: "core", secondary: []),
     ]
 
     @MainActor

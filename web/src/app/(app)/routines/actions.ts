@@ -62,6 +62,7 @@ export async function updateRoutineExercise(formData: FormData) {
       rep_max: num(formData.get("rep_max")),
       rest_seconds: num(formData.get("rest_seconds")),
       notes: String(formData.get("notes") || "") || null,
+      attachment: String(formData.get("attachment") || "").trim().slice(0, 80) || null,
     })
     .eq("id", String(formData.get("id")));
   if (error) throw error;

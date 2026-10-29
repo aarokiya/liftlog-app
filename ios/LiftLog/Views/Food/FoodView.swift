@@ -2,7 +2,7 @@ import LiftKit
 import SwiftData
 import SwiftUI
 
-/// Food → Dining hall (pick hall → today's menu + always-available staples) or Outside (fast food / custom).
+/// Food → Georgia Tech (dining halls' menus, campus places, nearby restaurants), Outside (fast food / custom) or search.
 struct FoodView: View {
     @Query(filter: #Predicate<FoodLog> { $0.deletedAt == nil }, sort: \FoodLog.eatenAt, order: .reverse) private var logs: [FoodLog]
     @Query(sort: \BodyMetric.measuredAt, order: .reverse) private var metrics: [BodyMetric]
@@ -11,10 +11,13 @@ struct FoodView: View {
     @Query(filter: #Predicate<WaterLog> { $0.deletedAt == nil }, sort: \WaterLog.drankAt, order: .reverse) private var waterLogs: [WaterLog]
     @Query(filter: #Predicate<Workout> { $0.deletedAt == nil }, sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(HealthService.self) private var health
     @Environment(Reminders.self) private var reminders
     /// What other apps saved to Health per day, for the targets and the calendar; one load covers both.
     @State private var healthDays: [Date: HealthService.Nutrition] = [:]
+    /// Health's step count per day (start of day), from 28 days before `rangeStart` so every day shown has its goal.
+    @State private var steps: [Date: Double] = [:]
     /// The month the goals calendar shows.
     @State private var month = Calendar.current.dateInterval(of: .month, for: .now)?.start ?? .now
     /// The day picked in the goals calendar; a past day lists its logged foods under it.
@@ -23,6 +26,8 @@ struct FoodView: View {
     @State private var editing: FoodLog?
     @State private var customWater = ""
     @State private var enteringWater = false
+    /// The water buttons take water away instead of adding it.
+    @State private var removingWater = false
 
     private var today: [FoodLog] { logs.filter { Calendar.current.isDateInToday($0.eatenAt) } }
     private var dayLogs: [FoodLog] { logs.filter { Calendar.current.isDate($0.eatenAt, inSameDayAs: day) } }
@@ -45,6 +50,29 @@ struct FoodView: View {
         try? context.save()
     }
 
+    /// Takes `raw` (in the display unit) off today's water, newest log first: whole logs are deleted and the last one
+    /// touched is shortened, so every stored amount stays positive.
+    private func removeWater(_ raw: Double) {
+        var left = raw
+        for log in waterToday where left > 0.05 {
+            let shown = log.unit.convert(log.amount, to: waterUnit)
+            if shown <= left + 0.05 {
+                log.softDelete()
+                left -= shown
+            } else {
+                let rest = (waterUnit.convert(shown - left, to: log.unit) * 10).rounded() / 10
+                if rest > 0 {
+                    log.amount = rest
+                    log.touch()
+                } else {
+                    log.softDelete()
+                }
+                left = 0
+            }
+        }
+        try? context.save()
+    }
+
     private func logged(_ key: KeyPath<FoodLog, Double>) -> Double {
         today.reduce(0) { $0 + $1[keyPath: key] * $1.servings }
     }
@@ -60,6 +88,7 @@ struct FoodView: View {
 
     private func loadHealth() async {
         healthDays = await health.dailyNutrition(from: rangeStart, to: .now)
+        steps = await health.dailySteps(from: Calendar.current.date(byAdding: .day, value: -28, to: rangeStart) ?? rangeStart, to: .now)
     }
 
     /// Today's totals; the reminders are rebuilt when they change.
@@ -78,29 +107,33 @@ struct FoodView: View {
         NavigationStack {
             List {
                 Section {
-                    VStack(spacing: 8) {
-                        HStack {
-                            macro("kcal", total(\.kcal, \.kcal), target: targets?.kcal, grade: Goal.soFar)
-                            macro("protein", total(\.protein, \.protein), target: targets?.protein) { $0 >= $1 ? .hit : .missed }
-                            macro("carbs", total(\.carbs, \.carbs), target: targets?.carbs, grade: Goal.soFar)
-                            macro("fat", total(\.fat, \.fat), target: targets?.fat, grade: Goal.soFar)
-                        }
-                        Text(energy.map {
-                            "Maintenance ≈ \($0.maintenance) kcal, \($0.learned ? "learned from your logs" : "estimated"). Targets adjust for your last 3 days."
-                        } ?? "Set your sex and log your weight and a body-fat % in Settings → Body & aesthetics to get daily targets.")
-                            .font(.caption).foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(spacing: 14) {
+                        macro("Calories", total(\.kcal, \.kcal), target: targets?.kcal, unit: "")
+                        let protein = total(\.protein, \.protein)
+                        // Protein is a minimum: more is fine.
+                        GoalBar(label: "Protein", value: protein, target: targets.map { Double($0.protein) }, unit: "g",
+                                state: targets.flatMap { Goal.reaching(protein, Double($0.protein)) })
+                        macro("Carbs", total(\.carbs, \.carbs), target: targets?.carbs, unit: "g")
+                        macro("Fat", total(\.fat, \.fat), target: targets?.fat, unit: "g")
+                        stepsRow
                     }
+                    .padding(.vertical, 6)
                     if let healthToday {
-                        LabeledContent("Logged in LiftLog", value: "\(Int(logged(\.kcal).rounded())) kcal · \(Int(logged(\.protein).rounded())) g P")
-                        LabeledContent("From Apple Health", value: "\(Int(healthToday.kcal.rounded())) kcal · \(Int(healthToday.protein.rounded())) g P")
+                        Group {
+                            LabeledContent("Logged in LiftLog", value: "\(Int(logged(\.kcal).rounded()).formatted()) kcal · \(Int(logged(\.protein).rounded())) g protein")
+                            LabeledContent("From Apple Health", value: "\(Int(healthToday.kcal.rounded()).formatted()) kcal · \(Int(healthToday.protein.rounded())) g protein")
+                        }
+                        .font(.footnote)
                     }
                 } header: {
                     Text("Today")
                 } footer: {
-                    if healthToday != nil {
-                        Text("Includes what MyFitnessPal or other apps saved to Apple Health. Log each meal in one app only so it isn't counted twice.")
-                    }
+                    Text([
+                        energy.map { "Maintenance ≈ \($0.maintenance.formatted()) kcal, \($0.learned ? "learned from your logs" : "estimated"). Targets adjust for your last 3 days." }
+                            ?? "Set your sex and log your weight and a body-fat % in Settings → Body & aesthetics to get daily targets.",
+                        healthToday == nil ? nil : "Includes food other apps saved to Apple Health; log each meal in one app only.",
+                        stepsNote,
+                    ].compactMap { $0 }.joined(separator: " "))
                 }
                 Section("Add food") {
                     AddFoodLinks()
@@ -117,13 +150,9 @@ struct FoodView: View {
                     }
                 }
                 waterSection
-                Section {
+                Section("Daily goals") {
                     GoalCalendar(month: $month, selected: $day, logs: logs, waterLogs: waterLogs, workouts: workouts, metrics: metrics,
-                                 waterUnit: waterUnit, healthDays: healthDays, targets: energy)
-                } header: {
-                    Text("Daily goals")
-                } footer: {
-                    Text("Green: protein and water goals hit and calories within 10% of the day's target. Orange: protein and water within 15%, calories within 20%. Red: missed. Tap a day for its calories and macros.")
+                                 waterUnit: waterUnit, healthDays: healthDays, steps: steps, targets: energy)
                 }
                 if !Calendar.current.isDateInToday(day), !dayLogs.isEmpty {
                     Section("Logged on \(day.formatted(.dateTime.weekday().month().day()))") {
@@ -138,11 +167,12 @@ struct FoodView: View {
                 }
             }
             .navigationTitle("Food")
-            .alert("Add water", isPresented: $enteringWater) {
+            .alert(removingWater ? "Remove water" : "Add water", isPresented: $enteringWater) {
                 TextField("Amount (\(waterUnit.rawValue))", text: $customWater)
                     .keyboardType(.decimalPad)
-                Button("Add") {
-                    addWater(Double(customWater.replacingOccurrences(of: ",", with: ".")) ?? 0)
+                Button(removingWater ? "Remove" : "Add") {
+                    let amount = Double(customWater.replacingOccurrences(of: ",", with: ".")) ?? 0
+                    if removingWater { removeWater(amount) } else { addWater(amount) }
                     customWater = ""
                 }
                 Button("Cancel", role: .cancel) { customWater = "" }
@@ -150,6 +180,11 @@ struct FoodView: View {
             .sheet(item: $editing) { EditFoodLogSheet(log: $0) }
             .task(id: month) { await loadHealth() }
             .refreshable { await loadHealth() }
+            // Steps keep counting while LiftLog is in the background, and Health may have just been turned on.
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { Task { await loadHealth() } }
+            }
+            .onChange(of: health.isEnabled) { Task { await loadHealth() } }
             .onChange(of: todayTotals) { refreshReminders() }
             .onChange(of: healthDays) { refreshReminders() }
         }
@@ -158,30 +193,19 @@ struct FoodView: View {
     private var waterSection: some View {
         let unit = waterUnit
         let shown = (waterTotal * 10).rounded() / 10
-        return Section("Water") {
+        return Section {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Image(systemName: "drop.fill").foregroundStyle(.cyan)
-                    Text(Format.number(shown)).font(.title2.bold().monospacedDigit())
-                    Text("\(unit.rawValue) today").foregroundStyle(.secondary)
-                    if let goal = waterGoal {
-                        Spacer()
-                        Text("goal \(Format.number(goal))")
-                            .font(.subheadline.bold().monospacedDigit())
-                            .foregroundStyle(shown >= goal ? Goal.hit.color : Goal.missed.color)
-                    }
-                }
-                if let goal = waterGoal {
-                    ProgressView(value: min(shown, goal), total: goal).tint(shown >= goal ? Goal.hit.color : Goal.missed.color)
-                } else {
+                GoalBar(value: shown, target: waterGoal, unit: unit.rawValue, state: waterGoal.flatMap { Goal.reaching(shown, $0) },
+                        format: Format.number)
+                if waterGoal == nil {
                     Text("Log your body weight in Settings → Body & aesthetics to get a daily goal.").font(.caption).foregroundStyle(.secondary)
                 }
                 HStack(spacing: 8) {
                     ForEach(unit.quickAmounts, id: \.self) { amount in
-                        Button { addWater(amount) } label: {
-                            Text("+\(Format.number(amount))").font(.subheadline.monospacedDigit()).frame(maxWidth: .infinity)
+                        Button { removingWater ? removeWater(amount) : addWater(amount) } label: {
+                            Text("\(removingWater ? "−" : "+")\(Format.number(amount))").font(.subheadline.monospacedDigit()).frame(maxWidth: .infinity)
                         }
-                        .accessibilityLabel("Add \(Format.number(amount)) \(unit.rawValue)")
+                        .accessibilityLabel("\(removingWater ? "Remove" : "Add") \(Format.number(amount)) \(unit.rawValue)")
                     }
                     Button { enteringWater = true } label: {
                         Image(systemName: "ellipsis").frame(minHeight: 17)
@@ -190,9 +214,10 @@ struct FoodView: View {
                 }
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.capsule)
-                .tint(.cyan)
+                .tint(removingWater ? .red : .cyan)
+                .disabled(removingWater && waterToday.isEmpty)
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, 6)
             if !waterToday.isEmpty {
                 DisclosureGroup("Today's log (\(waterToday.count))") {
                     ForEach(waterToday) { log in
@@ -206,26 +231,61 @@ struct FoodView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             }
+        } header: {
+            HStack {
+                Text("Water")
+                Spacer()
+                Button { removingWater.toggle() } label: {
+                    Image(systemName: removingWater ? "plus.circle.fill" : "minus.circle")
+                        .font(.title3)
+                        .foregroundStyle(removingWater ? .cyan : .red)
+                }
+                .accessibilityLabel(removingWater ? "Back to adding water" : "Remove water")
+            }
         }
     }
 
-    /// Today's total over its target; `grade` gets the rounded total and the target, and nil leaves it uncolored.
-    private func macro(_ label: String, _ value: Double, target: Int?, grade: (Double, Double) -> Goal?) -> some View {
-        VStack(spacing: 2) {
-            Text("\(Int(value.rounded()))").font(.headline.monospacedDigit())
-                .foregroundStyle(target.flatMap { grade(value.rounded(), Double($0)) }?.color ?? .primary)
-            Text(target.map { "\(label) / \($0.formatted())" } ?? label).font(.caption2).foregroundStyle(.secondary)
+    /// Today's steps from Apple Health against a goal from your own recent days (`Steps.goal`), under the macros. They
+    /// stay on the phone.
+    @ViewBuilder private var stepsRow: some View {
+        if HealthService.isAvailable {
+            let now = Calendar.current.startOfDay(for: .now)
+            if !health.isEnabled {
+                Button {
+                    Task {
+                        await health.enable()
+                        await health.sync(context: context)
+                    }
+                } label: {
+                    Label("Connect Apple Health for steps", systemImage: "figure.walk")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.borderless)
+            } else if steps.isEmpty {
+                Text("No steps from Apple Health yet. Check that LiftLog can read Steps in the Health app → your profile → Apps.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                let count = steps[now] ?? 0
+                let goal = Double(Steps.goal(steps, on: now))
+                GoalBar(label: "Steps", value: count, target: goal, state: Goal.reaching(count, goal))
+            }
         }
-        .frame(maxWidth: .infinity)
     }
-}
 
-struct HallPicker: View {
-    var body: some View {
-        List(DiningService.halls) { hall in
-            NavigationLink(hall.name) { HallMenuView(hall: hall) }
-        }
-        .navigationTitle("Dining hall")
+    /// Where today's step goal comes from, for the Today footer.
+    private var stepsNote: String? {
+        guard HealthService.isAvailable, health.isEnabled, !steps.isEmpty else { return nil }
+        let now = Calendar.current.startOfDay(for: .now)
+        return Steps.baseline(steps, on: now).map { "Step goal: your typical day lately (\(Int($0.rounded()).formatted())) plus 10%." }
+            ?? "Step goal: \(Steps.defaultGoal.formatted()) until Apple Health has a week of steps."
+    }
+
+    /// Today's calories, carbs or fat: green within 10% of the target, red once more than 10% over, neutral while under.
+    private func macro(_ label: String, _ value: Double, target: Int?, unit: String) -> some View {
+        GoalBar(label: label, value: value, target: target.map(Double.init), unit: unit,
+                state: target.flatMap { Goal.soFar(value, Double($0)) })
     }
 }
 
@@ -424,7 +484,7 @@ struct FoodRow: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing) {
-                    Text("\(Int(item.kcal.rounded())) kcal").font(.subheadline.monospacedDigit()).foregroundStyle(.primary)
+                    Text("\(item.estimated == true ? "≈ " : "")\(Int(item.kcal.rounded())) kcal").font(.subheadline.monospacedDigit()).foregroundStyle(.primary)
                     Text("\(Format.number(item.protein)) g protein").font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -438,17 +498,24 @@ struct LoggedFoodRow: View {
     let log: FoodLog
     let action: () -> Void
 
+    /// Where it's from and the meal, plus the servings when it isn't one.
+    private var details: String {
+        [log.place ?? log.source.capitalized, Meal(rawValue: log.meal)?.label ?? log.meal, log.servings == 1 ? nil : "\(Format.number(log.servings))×"]
+            .compactMap { $0 }.joined(separator: " · ")
+    }
+
     var body: some View {
         Button(action: action) {
             HStack {
                 VStack(alignment: .leading) {
-                    Text(log.name).lineLimit(1)
-                    Text("\(log.place ?? log.source.capitalized) · \(Meal(rawValue: log.meal)?.label ?? log.meal) · \(Format.number(log.servings))×")
-                        .font(.caption).foregroundStyle(.secondary)
+                    Text(log.name).foregroundStyle(.primary).lineLimit(1)
+                    Text(details).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer()
-                Text("\(Int((log.kcal * log.servings).rounded())) kcal · \(Int((log.protein * log.servings).rounded())) g P")
-                    .font(.caption.monospacedDigit())
+                VStack(alignment: .trailing) {
+                    Text("\(Int((log.kcal * log.servings).rounded())) kcal").font(.subheadline.monospacedDigit()).foregroundStyle(.primary)
+                    Text("\(Format.number(log.protein * log.servings)) g protein").font(.caption).foregroundStyle(.secondary)
+                }
             }
         }
         .tint(.primary)
@@ -517,12 +584,18 @@ struct CustomFoodSheet: View {
     /// Set while replacing a logged food: the food goes back to the edit sheet instead of being logged.
     var pick: FoodPick?
     @State private var name = ""
-    @State private var place = ""
+    @State private var place: String
     @State private var kcal: Double?
     @State private var protein: Double?
     @State private var carbs: Double?
     @State private var fat: Double?
     @State private var meal = Meal.current()
+
+    /// `place` prefills "Where", e.g. a campus place with no published menu.
+    init(pick: FoodPick? = nil, place: String = "") {
+        self.pick = pick
+        _place = State(initialValue: place)
+    }
 
     var body: some View {
         NavigationStack {

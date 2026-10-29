@@ -10,6 +10,14 @@ struct FoodItem: Identifiable, Hashable, Decodable {
     let protein: Double
     let carbs: Double
     let fat: Double
+    /// Built from USDA ingredients because the place publishes no nutrition (some of shared/food/gatech-menus.json).
+    var estimated: Bool?
+    /// Extras from Nutrislice that the dining planner scores with; nil when the menu doesn't say.
+    var fiber: Double?
+    var addedSugar: Double?
+    var saturatedFat: Double?
+    /// Nutrislice's food category, e.g. "dessert" or "pizza".
+    var category: String?
 }
 
 struct FoodGroup: Identifiable {
@@ -86,6 +94,23 @@ enum FoodLibrary {
         return official + load("fast-food").filter { !chains.contains($0.brand ?? "") }
     }()
     static let staples = load("dining-staples")
+    /// Menus of Georgia Tech places and nearby restaurants that aren't in restaurants.json: official where published,
+    /// else estimated.
+    static let campusMenus = load("gatech-menus")
+
+    /// Georgia Tech Dining's locations and restaurants near campus, in the file's order (shared/food/gatech.json).
+    static let campus: [CampusPlace] = {
+        struct Places: Decodable { let places: [CampusPlace] }
+        guard let url = Bundle.main.url(forResource: "gatech", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let file = try? JSONDecoder().decode(Places.self, from: data) else { return [] }
+        return file.places
+    }()
+
+    /// A place's menu: a chain's official items or the estimated ones.
+    static func menu(_ brand: String) -> [FoodItem] {
+        (fastFood + campusMenus).filter { $0.brand == brand }
+    }
 
     /// Restaurant names A–Z, with USDA's unbranded fast food last.
     static let restaurants: [String] = Set(fastFood.compactMap(\.brand)).sorted {
@@ -106,6 +131,25 @@ enum FoodLibrary {
               let file = try? JSONDecoder().decode(File.self, from: data) else { return [] }
         return file.items
     }
+}
+
+/// A Georgia Tech dining location or a restaurant near campus.
+struct CampusPlace: Decodable, Identifiable, Hashable {
+    let name: String
+    /// "Dining halls", "John Lewis Student Center", …, "Near campus".
+    let area: String
+    /// Where it is, e.g. "Clough Commons" or "Midtown · 0.4 mi".
+    var detail: String?
+    var kind: String?
+    /// Nutrislice id of a dining hall's live menu.
+    var hall: String?
+    /// The brand whose items are its menu; nil when it publishes none.
+    var menu: String?
+    /// Shown instead of a menu, e.g. for the convenience store.
+    var note: String?
+
+    var id: String { "\(area)|\(name)" }
+    var onCampus: Bool { area != "Near campus" }
 }
 
 struct DiningHall: Identifiable, Hashable {
@@ -135,6 +179,7 @@ enum DiningService {
     private struct Food: Decodable {
         let id: Int
         let name: String
+        let food_category: String?
         let rounded_nutrition_info: Nutrition?
         let serving_size_info: Serving?
     }
@@ -143,6 +188,9 @@ enum DiningService {
         let g_protein: Double?
         let g_carbs: Double?
         let g_fat: Double?
+        let g_fiber: Double?
+        let g_added_sugar: Double?
+        let g_saturated_fat: Double?
     }
     private struct Serving: Decodable {
         let serving_size_amount: String?
@@ -175,7 +223,9 @@ enum DiningService {
             items.append(FoodItem(
                 id: "ns-\(food.id)-\(station)", name: food.name, station: station,
                 serving: serving.isEmpty ? "1 serving" : serving,
-                kcal: n?.calories ?? 0, protein: n?.g_protein ?? 0, carbs: n?.g_carbs ?? 0, fat: n?.g_fat ?? 0
+                kcal: n?.calories ?? 0, protein: n?.g_protein ?? 0, carbs: n?.g_carbs ?? 0, fat: n?.g_fat ?? 0,
+                fiber: n?.g_fiber, addedSugar: n?.g_added_sugar, saturatedFat: n?.g_saturated_fat,
+                category: food.food_category.flatMap { $0.isEmpty ? nil : $0 }
             ))
         }
         return items

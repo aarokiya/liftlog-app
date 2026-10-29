@@ -44,6 +44,8 @@ jobs:
 
   ios:
     runs-on: macos-15
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: ios
@@ -72,6 +74,34 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty
+      - name: Build unsigned IPA (for SideStore / free Apple ID signing)
+        shell: bash -eo pipefail {0}
+        run: |
+          xcodebuild build \
+            -project LiftLog.xcodeproj \
+            -scheme LiftLog \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty
+          rm -rf Payload && mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/LiftLog.app Payload/
+          # Ad-hoc sign so the HealthKit entitlement is embedded; SideStore re-signs with your Apple ID.
+          codesign --force --sign - --entitlements LiftLog/LiftLog.entitlements Payload/LiftLog.app
+          zip -qry LiftLog.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LiftLog-ipa
+          path: ios/LiftLog.ipa
+      - name: Publish ios-latest release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view ios-latest >/dev/null 2>&1 || \
+            gh release create ios-latest --prerelease --title "Latest iOS build" --notes "Built from main by CI. Install with SideStore; see docs/INSTALL.md."
+          gh release upload ios-latest LiftLog.ipa --clobber
 
   ios-demo:
     runs-on: macos-15

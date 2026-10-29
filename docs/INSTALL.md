@@ -15,9 +15,11 @@ You don't need an account: signed out, everything stays on the phone. To sync wi
 5. First launch only: Settings → General → VPN & Device Management → trust your Apple ID.
 6. Every 7 days, plug in and press Run again.
 
-## Option B: SideStore (refreshes itself, no Mac after setup)
+## Option B: SideStore (refreshes itself, no Mac needed)
 
-Build an unsigned IPA yourself, then let SideStore sign and refresh it with your Apple ID.
+CI builds an unsigned `LiftLog.ipa` from every push to `main` and attaches it to the [ios-latest release](https://github.com/aarokiya/liftlog-app/releases/tag/ios-latest). Install SideStore once by following https://docs.sidestore.io, download `LiftLog.ipa` on the phone, then SideStore → My Apps → **+** and pick it. SideStore signs it with your Apple ID (giving it a bundle id of your own) and refreshes it before the 7 days run out.
+
+To build the IPA yourself instead:
 
 1. `brew install xcodegen && cd ios && cp Config.example.xcconfig Config.xcconfig`, and set `LIFTLOG_BUNDLE_ID` in it to something unique to you (e.g. `com.yourname.liftlog`).
 2. `xcodegen generate && xcodebuild build -project LiftLog.xcodeproj -scheme LiftLog -configuration Release -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO`
