@@ -14,8 +14,8 @@ import type { Exercise, Profile, WorkoutRow } from "./types";
 
 const WORKOUT_SELECT = `id, name, notes, started_at, ended_at, timezone,
   workout_exercises(id, exercise_id, position, notes, deleted_at,
-    exercises(id, name, primary_muscle, secondary_muscles),
-    sets(id, position, set_type, weight, weight_unit, reps, rpe, notes, deleted_at))`;
+    exercises(id, name, kind, primary_muscle, secondary_muscles),
+    sets(id, position, set_type, weight, weight_unit, reps, duration_seconds, rpe, notes, deleted_at))`;
 
 export async function getProfile(supabase: SupabaseClient, userId: string): Promise<Profile> {
   const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();

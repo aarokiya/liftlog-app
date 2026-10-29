@@ -65,13 +65,31 @@ export default async function WorkoutPage({ params }: { params: Promise<{ id: st
                       <option key={t}>{t}</option>
                     ))}
                   </select>
-                  <input name="weight" type="number" step="0.5" defaultValue={s.weight ?? ""} className="input w-20" aria-label="Weight" />
-                  <select name="weight_unit" defaultValue={s.weight_unit} className="input">
-                    <option>lb</option>
-                    <option>kg</option>
-                  </select>
-                  <span className="text-muted">×</span>
-                  <input name="reps" type="number" min={0} defaultValue={s.reps ?? ""} className="input w-16" aria-label="Reps" />
+                  {we.exercises?.kind === "duration" ? (
+                    <>
+                      <input type="hidden" name="weight_unit" value={s.weight_unit} />
+                      <input
+                        name="minutes"
+                        type="number"
+                        step="0.5"
+                        min={0}
+                        defaultValue={s.duration_seconds !== null ? Math.round((s.duration_seconds / 60) * 10) / 10 : ""}
+                        className="input w-20"
+                        aria-label="Minutes"
+                      />
+                      <span className="text-muted">min</span>
+                    </>
+                  ) : (
+                    <>
+                      <input name="weight" type="number" step="0.5" defaultValue={s.weight ?? ""} className="input w-20" aria-label="Weight" />
+                      <select name="weight_unit" defaultValue={s.weight_unit} className="input">
+                        <option>lb</option>
+                        <option>kg</option>
+                      </select>
+                      <span className="text-muted">×</span>
+                      <input name="reps" type="number" min={0} defaultValue={s.reps ?? ""} className="input w-16" aria-label="Reps" />
+                    </>
+                  )}
                   <input name="rpe" type="number" step="0.5" min={1} max={10} defaultValue={s.rpe ?? ""} placeholder="RPE" className="input w-16" />
                   <button className="btn-ghost">Save</button>
                 </form>

@@ -123,8 +123,13 @@ struct ExerciseSection: View {
         let previous = workoutExercise.previousSets
         Section {
             ForEach(Array(sets.enumerated()), id: \.element.id) { index, set in
-                SetRowView(set: set, number: workingNumber(sets, index), hint: workoutExercise.placeholder(at: index, in: sets, previous: previous), isActive: isActive) {
-                    restTimer.start(seconds: workoutExercise.exercise?.defaultRestSeconds ?? 120)
+                let timed = workoutExercise.exercise?.isTimed ?? false
+                SetRowView(set: set, number: workingNumber(sets, index), hint: workoutExercise.placeholder(at: index, in: sets, previous: previous),
+                           isTimed: timed, isActive: isActive) {
+                    // No rest timer after cardio.
+                    if !(workoutExercise.exercise?.isCardio ?? false) {
+                        restTimer.start(seconds: workoutExercise.exercise?.defaultRestSeconds ?? 120)
+                    }
                 }
                 .listRowBackground(set.completedAt != nil ? Color.green.opacity(0.18) : nil)
             }
@@ -162,7 +167,9 @@ struct SetRowView: View {
     @Bindable var set: WorkoutSet
     let number: Int
     /// Last time's numbers, shown greyed out until you type.
-    let hint: (weight: Double?, reps: Int?)
+    let hint: SetHint
+    /// Minutes instead of weight × reps.
+    var isTimed = false
     let isActive: Bool
     var onComplete: () -> Void
 
@@ -179,20 +186,30 @@ struct SetRowView: View {
                     .foregroundStyle(color)
             }
 
-            TextField(hint.weight.map(Format.number) ?? "weight", value: $set.weight.onSet(set.touch), format: .number)
-                .accessibilityLabel("Weight")
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.center)
-                .frame(width: 84)
-                .textFieldStyle(.roundedBorder)
-            Text(set.unit.rawValue).font(.caption).foregroundStyle(.secondary)
+            if isTimed {
+                TextField(hint.seconds.map { Format.number(Double($0) / 60) } ?? "minutes", value: minutes, format: .number)
+                    .accessibilityLabel("Minutes")
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 84)
+                    .textFieldStyle(.roundedBorder)
+                Text("min").font(.caption).foregroundStyle(.secondary)
+            } else {
+                TextField(hint.weight.map(Format.number) ?? "weight", value: $set.weight.onSet(set.touch), format: .number)
+                    .accessibilityLabel("Weight")
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 84)
+                    .textFieldStyle(.roundedBorder)
+                Text(set.unit.rawValue).font(.caption).foregroundStyle(.secondary)
 
-            TextField(hint.reps.map(String.init) ?? "reps", value: $set.reps.onSet(set.touch), format: .number)
-                .accessibilityLabel("Reps")
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .frame(width: 60)
-                .textFieldStyle(.roundedBorder)
+                TextField(hint.reps.map(String.init) ?? "reps", value: $set.reps.onSet(set.touch), format: .number)
+                    .accessibilityLabel("Reps")
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 60)
+                    .textFieldStyle(.roundedBorder)
+            }
 
             Spacer(minLength: 0)
 
@@ -206,6 +223,14 @@ struct SetRowView: View {
                 .sensoryFeedback(.success, trigger: set.completedAt)
             }
         }
+    }
+
+    /// Typed as minutes (decimals allowed), stored as whole seconds.
+    private var minutes: Binding<Double?> {
+        Binding(
+            get: { set.durationSeconds.map { Double($0) / 60 } },
+            set: { set.durationSeconds = $0.map { Int(($0 * 60).rounded()) }; set.touch() }
+        )
     }
 
     private var label: String {
@@ -228,10 +253,16 @@ struct SetRowView: View {
 
     private func toggle() {
         if set.completedAt == nil {
-            // Nothing to record yet: no reps typed and none from last time.
-            guard ((set.reps ?? hint.reps) ?? 0) > 0 else { return }
-            if set.weight == nil { set.weight = hint.weight }
-            if set.reps == nil { set.reps = hint.reps }
+            if isTimed {
+                // Nothing to record yet: no minutes typed and none from last time.
+                guard ((set.durationSeconds ?? hint.seconds) ?? 0) > 0 else { return }
+                if set.durationSeconds == nil { set.durationSeconds = hint.seconds }
+            } else {
+                // Nothing to record yet: no reps typed and none from last time.
+                guard ((set.reps ?? hint.reps) ?? 0) > 0 else { return }
+                if set.weight == nil { set.weight = hint.weight }
+                if set.reps == nil { set.reps = hint.reps }
+            }
             set.completedAt = .now
             onComplete()
         } else {

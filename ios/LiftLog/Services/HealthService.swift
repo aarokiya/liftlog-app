@@ -82,14 +82,20 @@ final class HealthService {
 
     private func save(_ workout: Workout, bodyWeightKg: Double?) async throws {
         guard let end = workout.endedAt, end > workout.startedAt else { return }
+        let exercises = workout.liveExercises.compactMap(\.exercise)
+        let cardioOnly = !exercises.isEmpty && exercises.allSatisfy(\.isCardio)
         let configuration = HKWorkoutConfiguration()
-        configuration.activityType = .traditionalStrengthTraining
+        configuration.activityType = cardioOnly ? Self.cardioType(exercises) : .traditionalStrengthTraining
         configuration.locationType = .indoor
         let builder = HKWorkoutBuilder(healthStore: store, configuration: configuration, device: .local())
         try await builder.beginCollection(at: workout.startedAt)
         if let bodyWeightKg {
-            // ~4 net METs for resistance training; Health shows it as active energy.
-            let kcal = 4.0 * bodyWeightKg * end.timeIntervalSince(workout.startedAt) / 3600
+            // Health shows this as active energy: ~4 net METs for resistance training over the whole session, ~5 for
+            // easy incline walking or stair climbing over the minutes logged.
+            let loggedSeconds = workout.liveExercises.flatMap(\.liveSets).compactMap(\.durationSeconds).reduce(0, +)
+            let kcal = cardioOnly && loggedSeconds > 0
+                ? 5.0 * bodyWeightKg * Double(loggedSeconds) / 3600
+                : 4.0 * bodyWeightKg * end.timeIntervalSince(workout.startedAt) / 3600
             try await builder.addSamples([
                 HKQuantitySample(
                     type: HKQuantityType(.activeEnergyBurned),
@@ -101,6 +107,14 @@ final class HealthService {
         try await builder.addMetadata([HKMetadataKeyExternalUUID: workout.id.uuidString])
         try await builder.endCollection(at: end)
         _ = try await builder.finishWorkout()
+    }
+
+    /// Stair climbing or walking when that's all the session was, otherwise mixed cardio.
+    private static func cardioType(_ exercises: [Exercise]) -> HKWorkoutActivityType {
+        let ids = Set(exercises.map(\.id))
+        if ids == Set([GymLibrary.builtInId(70)].compactMap { $0 }) { return .stairClimbing }
+        if ids == Set([GymLibrary.builtInId(71)].compactMap { $0 }) { return .walking }
+        return .mixedCardio
     }
 
     func saveBodyWeight(_ value: Double, unit: WeightUnit, at date: Date) async {

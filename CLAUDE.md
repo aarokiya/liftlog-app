@@ -8,6 +8,7 @@ Strength tracker with a native **SwiftUI iPhone app** (iOS 17+) and a **Next.js 
 - Multi-user: every user table has `user_id` with per-user RLS. Never commit anyone's personal data (measurements, history) in source, fixtures or docs.
 - Georgia Tech dining halls only appear when a user's `profiles.campus` is `gatech`. Same-movement swaps (from `shared/gyms/gatech-crc.json`) are offered to everyone; only the "CRC" wording is campus-specific.
 - Body math depends on `profiles.sex` (`male`/`female`): body-fat formulas, plan thresholds and goal (12% / 22%), Wilks/DOTS. While it's null those are hidden behind a hint, never defaulted to male.
+- Cardio (built-in Stairmaster and Incline Walk (Treadmill): kind `duration`, muscle `cardio`) is logged as minutes in `sets.duration_seconds`; sets without reps stay out of lifting stats, and cardio-only sessions don't count toward the weekly target. A program day of only cardio (or an empty day named Rest) is a rest day: starting it asks which cardio to log, and up-next skips it once its day has passed.
 - Users can delete their account (RPC `delete_account`, web Settings and iOS Settings); `/privacy` describes what's stored. Keep both accurate when adding data.
 - Commit in small, incremental steps.
 

@@ -37,14 +37,15 @@ struct TrainingData {
 
     var lifetimeVolume: Double { Volume.load(sets, unit: unit) }
 
+    /// Lifting sessions this week; rest-day cardio doesn't count toward the target.
     var thisWeekCount: Int {
         let week = LocalDate(date: .now).weekNumber
-        return workouts.filter { LocalDate(date: $0.startedAt).weekNumber == week }.count
+        return workouts.filter { $0.hasLifting && LocalDate(date: $0.startedAt).weekNumber == week }.count
     }
 
     func streak(target: Int) -> Streaks.Result {
         Streaks.weekly(
-            workoutDates: workouts.map { LocalDate(date: $0.startedAt) },
+            workoutDates: workouts.filter(\.hasLifting).map { LocalDate(date: $0.startedAt) },
             target: target,
             asOf: LocalDate(date: .now)
         )
@@ -117,8 +118,10 @@ extension TrainingData {
 
         // Sessions under 10 minutes (quick tests, back-filled logs) would give absurd rates.
         let densities = workouts.reversed().compactMap { w -> Double? in
-            guard let end = w.endedAt, end.timeIntervalSince(w.startedAt) >= 600 else { return nil }
-            return Advanced.density(volume: Volume.load(w.liftSets(), unit: unit), minutes: end.timeIntervalSince(w.startedAt) / 60)
+            // Cardio-only sessions have no volume and would drag the average to zero.
+            let volume = Volume.load(w.liftSets(), unit: unit)
+            guard let end = w.endedAt, end.timeIntervalSince(w.startedAt) >= 600, volume > 0 else { return nil }
+            return Advanced.density(volume: volume, minutes: end.timeIntervalSince(w.startedAt) / 60)
         }.prefix(10)
         let density = densities.isEmpty ? nil : (densities.reduce(0, +) / Double(densities.count)).rounded()
 

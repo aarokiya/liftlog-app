@@ -69,5 +69,7 @@ insert into exercises (id, user_id, name, kind, equipment, primary_muscle, secon
   ('00000000-0000-4000-8000-000000000066', null, 'Cable Upright Row', 'weight_reps', 'cable', 'side_delts', '{traps}'),
   ('00000000-0000-4000-8000-000000000067', null, 'Incline Bench Press (Smith)', 'weight_reps', 'machine', 'chest', '{front_delts,triceps}'),
   ('00000000-0000-4000-8000-000000000068', null, 'Bayesian Curl (Cable)', 'weight_reps', 'cable', 'biceps', '{}'),
-  ('00000000-0000-4000-8000-000000000069', null, 'Hammer Curl (Cable)', 'weight_reps', 'cable', 'biceps', '{forearms}')
+  ('00000000-0000-4000-8000-000000000069', null, 'Hammer Curl (Cable)', 'weight_reps', 'cable', 'biceps', '{forearms}'),
+  ('00000000-0000-4000-8000-000000000070', null, 'Stairmaster', 'duration', 'cardio_machine', 'cardio', '{}'),
+  ('00000000-0000-4000-8000-000000000071', null, 'Incline Walk (Treadmill)', 'duration', 'cardio_machine', 'cardio', '{}')
 on conflict (id) do nothing;

@@ -45,14 +45,23 @@ struct WorkoutSummaryRow: View {
             }
             HStack(spacing: 12) {
                 if let duration = workout.duration { Label(Format.duration(duration), systemImage: "clock") }
-                Label(Format.volume(Volume.load(workout.liftSets(), unit: unit), unit), systemImage: "scalemass")
+                let volume = Volume.load(workout.liftSets(), unit: unit)
+                if volume > 0 { Label(Format.volume(volume, unit), systemImage: "scalemass") }
                 Label("\(workout.liveExercises.count)", systemImage: "list.bullet")
             }
             .font(.caption)
             .foregroundStyle(.secondary)
-            Text(workout.liveExercises.map { "\($0.liveSets.count)× \($0.exercise?.name ?? "")" }.joined(separator: "\n"))
+            Text(workout.liveExercises.map(Self.summary).joined(separator: "\n"))
                 .font(.caption)
                 .lineLimit(4)
         }
+    }
+
+    /// "3× Hack Squat", or "25 min Stairmaster" for timed exercises.
+    static func summary(_ we: WorkoutExercise) -> String {
+        let name = we.exercise?.name ?? ""
+        guard we.exercise?.isTimed == true else { return "\(we.liveSets.count)× \(name)" }
+        let seconds = we.liveSets.compactMap(\.durationSeconds).reduce(0, +)
+        return "\(Format.number(Double(seconds) / 60)) min \(name)"
     }
 }

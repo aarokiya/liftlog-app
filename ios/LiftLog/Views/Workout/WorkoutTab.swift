@@ -10,6 +10,8 @@ struct WorkoutTab: View {
     @Query(filter: #Predicate<Routine> { $0.deletedAt == nil }, sort: \Routine.position)
     private var routines: [Routine]
     @AppStorage(Prefs.activeProgram) private var activeProgram: String?
+    /// The rest day whose cardio choices are showing.
+    @State private var restDay: Routine?
 
     /// The active program's days, then the user's own routines; days of programs switched away from stay in the Routines tab.
     private var startable: [Routine] {
@@ -37,11 +39,13 @@ struct WorkoutTab: View {
                             let style = RoutineStyle(name: routine.name)
                             let isNext = routine.id == upNext?.id
                             Button {
-                                start(routine)
+                                if routine.isRestDay { restDay = routine } else { start(routine) }
                             } label: {
                                 StartRow(
                                     title: routine.name,
-                                    detail: "\(routine.liveItems.count) exercises · \(routine.liveItems.reduce(0) { $0 + $1.targetSets }) sets",
+                                    detail: routine.isRestDay
+                                        ? "Rest, or optional light cardio"
+                                        : "\(routine.liveItems.count) exercises · \(routine.liveItems.reduce(0) { $0 + $1.targetSets }) sets",
                                     exercises: routine.liveItems.compactMap { $0.exercise?.name }.joined(separator: " · "),
                                     symbol: style.symbol, colors: style.colors, isNext: isNext
                                 )
@@ -56,12 +60,24 @@ struct WorkoutTab: View {
                     WorkoutHistorySections()
                 }
                 .navigationTitle("Workout")
+                .confirmationDialog(
+                    "Light cardio",
+                    isPresented: Binding(get: { restDay != nil }, set: { if !$0 { restDay = nil } }),
+                    titleVisibility: .visible,
+                    presenting: restDay
+                ) { routine in
+                    ForEach(routine.liveItems) { item in
+                        Button(item.exercise?.name ?? "Cardio") { start(routine, items: [item]) }
+                    }
+                } message: { routine in
+                    Text(routine.liveItems.isEmpty ? "Rest day: nothing to log." : "Optional. Pick one to log, or just rest today.")
+                }
             }
         }
     }
 
-    private func start(_ routine: Routine?) {
-        _ = Workout.start(routine: routine, unit: WeightUnit(rawValue: unitRaw) ?? .lb, context: context)
+    private func start(_ routine: Routine?, items: [RoutineExercise]? = nil) {
+        _ = Workout.start(routine: routine, items: items, unit: WeightUnit(rawValue: unitRaw) ?? .lb, context: context)
         try? context.save()
     }
 }
@@ -74,6 +90,7 @@ struct RoutineStyle {
     init(name: String) {
         let n = name.lowercased()
         switch true {
+        case n.contains("rest"), n.contains("cardio"): (symbol, colors) = ("figure.walk", [.mint, .cyan])
         case n.contains("push"): (symbol, colors) = ("arrow.up.right", [.orange, .red])
         case n.contains("pull"): (symbol, colors) = ("arrow.down.left", [.teal, .cyan])
         case n.contains("leg"): (symbol, colors) = ("figure.strengthtraining.functional", [.green, .mint])

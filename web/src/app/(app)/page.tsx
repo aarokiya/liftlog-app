@@ -45,8 +45,10 @@ export default async function Dashboard() {
   // Bodyweight sets (e.g. leg raises) count toward sets per muscle and recency, not volume or e1RM.
   const muscleWork = toLiftSets(workouts, { bodyweight: true });
 
+  // Rest-day cardio doesn't count toward the weekly target.
+  const lifting = new Set(muscleWork.map((s) => s.sessionId));
   const streak = weeklyStreak(
-    workouts.map((w) => localDate(w.started_at, w.timezone)),
+    workouts.filter((w) => lifting.has(w.id)).map((w) => localDate(w.started_at, w.timezone)),
     profile.weekly_workout_target,
     today,
   );
@@ -99,8 +101,11 @@ export default async function Dashboard() {
   // Sessions under 10 minutes (quick tests, back-filled logs) would give absurd rates.
   const densities = workouts
     .filter((w) => w.ended_at && Date.parse(w.ended_at) - Date.parse(w.started_at) >= 600_000)
+    .map((w) => ({ w, volume: volumeLoad(sets.filter((s) => s.sessionId === w.id), unit) }))
+    // Cardio-only sessions have no volume and would drag the average to zero.
+    .filter(({ volume }) => volume > 0)
     .slice(0, 10)
-    .map((w) => density(volumeLoad(sets.filter((s) => s.sessionId === w.id), unit), (Date.parse(w.ended_at!) - Date.parse(w.started_at)) / 60000))
+    .map(({ w, volume }) => density(volume, (Date.parse(w.ended_at!) - Date.parse(w.started_at)) / 60000))
     .filter((d): d is number => d !== null);
   const avgDensity = densities.length ? Math.round(densities.reduce((a, b) => a + b, 0) / densities.length) : null;
   const bigThree = BIG_THREE.map((id) => Math.max(0, ...bestE1RMPerSession(sets.filter((s) => s.exerciseId === id), unit, profile.e1rm_formula).map((p) => p.value)));

@@ -113,6 +113,7 @@ struct SetRow: RemoteRow {
     var weight: Nullable<Double>
     var weight_unit: String
     var reps: Nullable<Int>
+    var duration_seconds: Nullable<Int>
     var rpe: Nullable<Double>
     var notes: Nullable<String>
     var completed_at: Nullable<Date>

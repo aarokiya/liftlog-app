@@ -33,6 +33,8 @@ export interface SetRow {
   weight: number | null;
   weight_unit: WeightUnit;
   reps: number | null;
+  /** Cardio and other timed exercises record seconds instead of weight × reps. */
+  duration_seconds: number | null;
   rpe: number | null;
   notes: string | null;
   deleted_at: string | null;
@@ -44,7 +46,7 @@ export interface WorkoutExerciseRow {
   position: number;
   notes: string | null;
   deleted_at: string | null;
-  exercises: Pick<Exercise, "id" | "name" | "primary_muscle" | "secondary_muscles"> | null;
+  exercises: Pick<Exercise, "id" | "name" | "kind" | "primary_muscle" | "secondary_muscles"> | null;
   sets: SetRow[];
 }
 
@@ -76,4 +78,5 @@ export const MUSCLE_LABELS: Record<string, string> = {
   adductors: "Adductors",
   abductors: "Abductors",
   hip_flexors: "Hip flexors",
+  cardio: "Cardio",
 };

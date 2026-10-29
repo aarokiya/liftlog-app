@@ -96,7 +96,7 @@ final class SyncService {
                 guard let parent = s.workoutExercise else { return nil }
                 return SetRow(
                     id: s.id, user_id: userId, workout_exercise_id: parent.id, position: s.position, set_type: s.setTypeRaw,
-                    weight: .init(s.weight), weight_unit: s.unitRaw, reps: .init(s.reps), rpe: .init(s.rpe),
+                    weight: .init(s.weight), weight_unit: s.unitRaw, reps: .init(s.reps), duration_seconds: .init(s.durationSeconds), rpe: .init(s.rpe),
                     notes: .init(s.notes), completed_at: .init(s.completedAt), deleted_at: .init(s.deletedAt)
                 )
             }
@@ -252,6 +252,7 @@ final class SyncService {
                     s.weight = row.weight.value
                     s.unitRaw = row.weight_unit
                     s.reps = row.reps.value
+                    s.durationSeconds = row.duration_seconds.value
                     s.rpe = row.rpe.value
                     s.notes = row.notes.value
                     s.completedAt = row.completed_at.value

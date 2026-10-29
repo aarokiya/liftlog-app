@@ -7,6 +7,10 @@ import { DEFAULT_TIME_ZONE, fromZonedInput, validTimeZone } from "@/lib/time";
 
 const now = () => new Date().toISOString();
 const num = (v: FormDataEntryValue | null) => (v === null || v === "" ? null : Number(v));
+const minutesToSeconds = (v: FormDataEntryValue | null) => {
+  const minutes = num(v);
+  return minutes === null || !(minutes >= 0) ? null : Math.round(minutes * 60);
+};
 const zoneOf = (formData: FormData) => validTimeZone(String(formData.get("timezone") ?? "")) ?? DEFAULT_TIME_ZONE;
 
 export async function createWorkout(formData: FormData) {
@@ -85,7 +89,7 @@ export async function addSet(formData: FormData) {
   const workoutExerciseId = String(formData.get("workout_exercise_id"));
   const { data: last } = await supabase
     .from("sets")
-    .select("position, weight, weight_unit, reps")
+    .select("position, weight, weight_unit, reps, duration_seconds")
     .eq("workout_exercise_id", workoutExerciseId)
     .is("deleted_at", null)
     .order("position", { ascending: false })
@@ -97,6 +101,7 @@ export async function addSet(formData: FormData) {
     weight: last?.weight ?? null,
     weight_unit: last?.weight_unit ?? String(formData.get("unit") || "lb"),
     reps: last?.reps ?? null,
+    duration_seconds: last?.duration_seconds ?? null,
     completed_at: now(),
   });
   if (error) throw error;
@@ -113,6 +118,8 @@ export async function updateSet(formData: FormData) {
       weight_unit: String(formData.get("weight_unit")),
       reps: num(formData.get("reps")),
       rpe: num(formData.get("rpe")),
+      // Timed exercises send minutes instead of weight and reps.
+      ...(formData.has("minutes") ? { duration_seconds: minutesToSeconds(formData.get("minutes")) } : {}),
     })
     .eq("id", String(formData.get("id")));
   if (error) throw error;

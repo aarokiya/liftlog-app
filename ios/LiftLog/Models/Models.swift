@@ -62,6 +62,12 @@ final class Exercise: SyncedModel {
 
     var muscles: ExerciseMuscles { ExerciseMuscles(primary: primaryMuscle, secondary: secondaryMuscles) }
 
+    /// Logged as minutes instead of weight × reps (cardio, planks).
+    var isTimed: Bool { kind == "duration" }
+
+    /// Treadmill, stair climber and the like: optional on rest days, never part of lifting stats.
+    var isCardio: Bool { primaryMuscle == "cardio" }
+
     /// Sets from the most recent finished workout before `date`, used to prefill weight and reps.
     func lastSets(before date: Date) -> [WorkoutSet] {
         workoutExercises
@@ -108,6 +114,9 @@ final class Workout: SyncedModel {
 
     var duration: TimeInterval? { endedAt.map { $0.timeIntervalSince(startedAt) } }
 
+    /// Has at least one lifting set; cardio-only sessions don't count toward the weekly workout target.
+    var hasLifting: Bool { !liftSets(includingBodyweight: true).isEmpty }
+
     /// Only workouts started in the app can be in progress. Web and imported workouts may have no end
     /// time (unknown duration) but are finished.
     var isInProgress: Bool { endedAt == nil && source == "app" }
@@ -150,7 +159,8 @@ final class Workout: SyncedModel {
     }
 
     /// Ends the workout. Unticked sets you typed into count as done, with blanks filled from their placeholders;
-    /// untouched sets and sets without reps are dropped, and a workout left with nothing is discarded.
+    /// untouched sets and sets without reps (or minutes, for timed exercises) are dropped, and a workout left with
+    /// nothing is discarded.
     func finish() {
         let now = Date.now
         for we in liveExercises {
@@ -158,16 +168,17 @@ final class Workout: SyncedModel {
             let previous = we.previousSets
             for (index, set) in sets.enumerated() {
                 if set.completedAt == nil {
-                    guard set.weight != nil || set.reps != nil else {
+                    guard set.weight != nil || set.reps != nil || set.durationSeconds != nil else {
                         set.softDelete()
                         continue
                     }
                     let hint = we.placeholder(at: index, in: sets, previous: previous)
                     if set.weight == nil { set.weight = hint.weight }
                     if set.reps == nil { set.reps = hint.reps }
-                    if (set.reps ?? 0) > 0 { set.completedAt = now }
+                    if set.durationSeconds == nil { set.durationSeconds = hint.seconds }
+                    if set.hasResult { set.completedAt = now }
                 }
-                if (set.reps ?? 0) > 0 { set.touch() } else { set.softDelete() }
+                if set.hasResult { set.touch() } else { set.softDelete() }
             }
             if we.liveSets.isEmpty { we.softDelete() }
         }
@@ -176,10 +187,11 @@ final class Workout: SyncedModel {
         touch()
     }
 
-    static func start(routine: Routine?, unit: WeightUnit, context: ModelContext) -> Workout {
+    /// Starts a workout from `routine`, with all of its exercises or just `items` (e.g. the cardio picked on a rest day).
+    static func start(routine: Routine?, items: [RoutineExercise]? = nil, unit: WeightUnit, context: ModelContext) -> Workout {
         let workout = Workout(name: routine?.name ?? defaultName(), routineId: routine?.id)
         context.insert(workout)
-        for item in routine?.liveItems ?? [] {
+        for item in items ?? routine?.liveItems ?? [] {
             if let exercise = item.exercise {
                 workout.add(exercise, sets: item.targetSets, unit: unit, context: context)
             }
@@ -194,6 +206,13 @@ final class Workout: SyncedModel {
         default: "Evening Workout"
         }
     }
+}
+
+/// What a set row shows greyed out until you type: last session's numbers, or the set above's.
+struct SetHint {
+    var weight: Double?
+    var reps: Int?
+    var seconds: Int?
 }
 
 @Model
@@ -223,11 +242,12 @@ final class WorkoutExercise: SyncedModel {
 
     /// The weight and reps a set shows as placeholders: the same set last session, otherwise what the set above has
     /// (typed or shown). Ticking or finishing a set fills its blanks from these.
-    func placeholder(at index: Int, in sets: [WorkoutSet], previous: [WorkoutSet]) -> (weight: Double?, reps: Int?) {
-        if let last = previous[safe: index] { return (last.weight, last.reps) }
-        guard index > 0, let above = sets[safe: index - 1] else { return (nil, nil) }
+    func placeholder(at index: Int, in sets: [WorkoutSet], previous: [WorkoutSet]) -> SetHint {
+        if let last = previous[safe: index] { return SetHint(weight: last.weight, reps: last.reps, seconds: last.durationSeconds) }
+        guard index > 0, let above = sets[safe: index - 1] else { return SetHint() }
         let aboveHint = placeholder(at: index - 1, in: sets, previous: previous)
-        return (above.weight ?? aboveHint.weight, above.reps ?? aboveHint.reps)
+        return SetHint(weight: above.weight ?? aboveHint.weight, reps: above.reps ?? aboveHint.reps,
+                       seconds: above.durationSeconds ?? aboveHint.seconds)
     }
 
     @discardableResult
@@ -255,6 +275,8 @@ final class WorkoutSet: SyncedModel {
     var weight: Double?
     var unitRaw: String
     var reps: Int?
+    /// Minutes of cardio (or a plank) as seconds; weight and reps stay empty for timed exercises.
+    var durationSeconds: Int?
     var rpe: Double?
     var notes: String?
     var completedAt: Date?
@@ -275,6 +297,9 @@ final class WorkoutSet: SyncedModel {
         self.updatedAt = .now
         self.needsSync = true
     }
+
+    /// Reps or minutes were recorded, so the set counts as done.
+    var hasResult: Bool { (reps ?? 0) > 0 || (durationSeconds ?? 0) > 0 }
 
     var setType: SetType {
         get { SetType(rawValue: setTypeRaw) ?? .working }
@@ -310,6 +335,13 @@ final class Routine: SyncedModel {
     }
 
     var liveItems: [RoutineExercise] { items.filter(\.isLive).sorted { $0.position < $1.position } }
+
+    /// A day of only optional cardio (or an empty day named "Rest"). Starting it asks which cardio to log, and the
+    /// rotation moves past it once its day has gone by.
+    var isRestDay: Bool {
+        let live = liveItems
+        return live.isEmpty ? name.localizedCaseInsensitiveContains("rest") : live.allSatisfy { $0.exercise?.isCardio == true }
+    }
 }
 
 @Model

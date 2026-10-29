@@ -12,7 +12,8 @@
     "machine": "Life Fitness Signature selectorized, Free Motion Genesis, Smith machine, standing calf raise",
     "plate_machine": "Hammer Strength plate-loaded",
     "assisted_machine": "Dip/chin assist",
-    "bodyweight": "Captain's chair, benches (flat, incline, decline, military, adjustable)"
+    "bodyweight": "Captain's chair, benches (flat, incline, decline, military, adjustable)",
+    "cardio_machine": "Treadmills, stair climbers, bikes and ellipticals"
   },
   "plates_lb": [55, 45, 35, 25, 10, 5, 2.5],
   "dumbbell_max_lb": 130,

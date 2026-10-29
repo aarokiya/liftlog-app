@@ -74,7 +74,7 @@ struct RoutinesView: View {
                 HStack {
                     VStack(alignment: .leading) {
                         Text(routine.name).font(.headline)
-                        Text("\(routine.liveItems.count) exercises").font(.caption).foregroundStyle(.secondary)
+                        Text(routine.isRestDay ? "Rest or light cardio" : "\(routine.liveItems.count) exercises").font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                     if routine.id == upNext?.id { Text("Up next").font(.caption.bold()).foregroundStyle(.tint) }

@@ -1,3 +1,4 @@
+import LiftKit
 import SwiftData
 import SwiftUI
 
@@ -63,7 +64,8 @@ enum ProgramLibrary {
         return routines.filter { $0.program == program }.sorted { ($0.programDay ?? 0) < ($1.programDay ?? 0) }
     }
 
-    /// The day after the most recent workout started from one of `days`.
+    /// The day after the most recent workout started from one of `days`. Each calendar day that has gone by since then
+    /// uses up a rest day, so resting without logging cardio doesn't hold up the rotation.
     @MainActor
     static func upNext(in days: [Routine], context: ModelContext) -> Routine? {
         let ids = days.map(\.id)
@@ -74,7 +76,15 @@ enum ProgramLibrary {
         descriptor.fetchLimit = 50
         let last = (try? context.fetch(descriptor))?.first { ids.contains($0.routineId!) }
         guard let last, let index = ids.firstIndex(of: last.routineId!) else { return days.first }
-        return days[(index + 1) % days.count]
+        var next = (index + 1) % days.count
+        var daysOff = LocalDate(date: .now).dayNumber - LocalDate(date: last.startedAt).dayNumber - 1
+        var skipped = 0
+        while daysOff > 0, days[next].isRestDay, skipped < days.count {
+            next = (next + 1) % days.count
+            daysOff -= 1
+            skipped += 1
+        }
+        return days[next]
     }
 
     @MainActor
