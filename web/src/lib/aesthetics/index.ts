@@ -4,6 +4,8 @@
 import { convert } from "../stats";
 import type { Sex } from "../stats/advanced";
 
+export * from "./energy";
+
 /** U.S. Navy circumference method (men), all lengths in cm. */
 export function navyBodyFatMale(heightCm: number, waistCm: number, neckCm: number): number | null {
   if (heightCm <= 0 || waistCm <= neckCm) return null;

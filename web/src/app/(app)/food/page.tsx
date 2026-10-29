@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { bodyPlan, planStartWeight } from "@/lib/aesthetics";
+import { baseTargets, bodyPlan, dailyTargets, formulaMaintenance, learnedMaintenance, planStartWeight } from "@/lib/aesthetics";
 import { FAST_FOOD, HALLS, RESTAURANTS, SNACK_GROUPS, STAPLES, WATER_QUICK, currentMeal, diningMenu, fromRow, groupBy, localDate, normalizeBarcode, parseOpenFoodFacts, totals, waterGoal, waterTotal, waterUnitFor, brandFoods, uniqueFoods, type FoodItem, type FoodRow } from "@/lib/food";
-import { convert } from "@/lib/stats";
+import { convert, dayNumber } from "@/lib/stats";
 import { getProfile } from "@/lib/data";
 import { requireUser } from "@/lib/supabase/server";
 import { userTimeZone } from "@/lib/time/server";
@@ -53,11 +53,15 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
   const match = (i: FoodItem) => !q || i.name.toLowerCase().includes(q) || (i.brand ?? "").toLowerCase().includes(q);
 
   const since = new Date(Date.now() - 36 * 3600 * 1000).toISOString();
-  const [{ data: logRows }, { data: metrics }, { data: waterRows }, { data: workoutRows }] = await Promise.all([
+  // 34 local days of intake (plus a day of slack for the time zone) for learned maintenance and carryover.
+  const intakeSince = new Date(Date.now() - 35 * 86_400_000).toISOString();
+  const [{ data: logRows }, { data: metrics }, { data: waterRows }, { data: workoutRows }, { data: intakeRows }] = await Promise.all([
     supabase.from("food_logs").select("id, eaten_at, meal, source, place, name, servings, kcal, protein, carbs, fat").is("deleted_at", null).gte("eaten_at", since).order("eaten_at", { ascending: false }),
     supabase.from("body_metrics").select("measured_at, body_weight, unit, body_fat_pct").is("deleted_at", null).order("measured_at", { ascending: false }).limit(200),
     supabase.from("water_logs").select("id, drank_at, amount, unit").is("deleted_at", null).gte("drank_at", since).order("drank_at", { ascending: false }),
     supabase.from("workouts").select("started_at").is("deleted_at", null).gte("started_at", since),
+    // Newest first, so if the row cap ever bites it drops the oldest days rather than the recent carryover.
+    supabase.from("food_logs").select("eaten_at, servings, kcal, fat").is("deleted_at", null).gte("eaten_at", intakeSince).order("eaten_at", { ascending: false }),
   ]);
   const logs = (logRows ?? []).filter((l) => localDate(new Date(l.eaten_at), tz) === today);
   const sum = totals(logs);
@@ -65,9 +69,37 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
   const waterUnit = waterUnitFor(unit);
   const w = (metrics ?? []).find((m) => m.body_weight !== null);
   const bf = (metrics ?? []).find((m) => m.body_fat_pct !== null)?.body_fat_pct;
-  const proteinTarget = profile.sex && w && bf
-    ? bodyPlan(convert(Number(w.body_weight), w.unit === "kg" ? "kg" : "lb", unit), unit, Number(bf), undefined, planStartWeight(metrics ?? [], unit) ?? undefined, profile.sex).proteinG
-    : null;
+  const sex = profile.sex;
+  const bodyWeight = w ? convert(Number(w.body_weight), w.unit === "kg" ? "kg" : "lb", unit) : null;
+  const plan = sex && bodyWeight !== null && bf ? bodyPlan(bodyWeight, unit, Number(bf), undefined, planStartWeight(metrics ?? [], unit) ?? undefined, sex) : null;
+
+  // Daily targets: maintenance from the formula, learned from logs and weigh-ins once there are enough, then the plan's
+  // deficit or surplus, adjusted for the last 3 days. Only food logged in LiftLog counts: Apple Health stays on the phone.
+  const todayNum = dayNumber(today);
+  const intake: Record<number, { kcal: number; fat: number }> = {};
+  for (const l of [...(intakeRows ?? [])].reverse()) {
+    const d = dayNumber(localDate(new Date(l.eaten_at), tz));
+    if (d < todayNum - 33) continue;
+    intake[d] ??= { kcal: 0, fat: 0 };
+    intake[d].kcal += Number(l.kcal) * Number(l.servings);
+    intake[d].fat += Number(l.fat) * Number(l.servings);
+  }
+  // Every weigh-in in kg on its local day, oldest first (as on iOS).
+  const weights = [...(metrics ?? [])]
+    .reverse()
+    .filter((m) => m.body_weight !== null)
+    .map((m) => ({ day: dayNumber(localDate(new Date(m.measured_at), tz)), kg: convert(Number(m.body_weight), m.unit === "kg" ? "kg" : "lb", "kg") }));
+  const formula = plan ? formulaMaintenance(convert(plan.leanMass, unit, "kg")) : null;
+  const maintenance = formula !== null ? learnedMaintenance(formula, Object.fromEntries(Object.entries(intake).map(([d, i]) => [d, i.kcal])), weights, todayNum) : null;
+  const targets =
+    plan && sex && bodyWeight !== null && maintenance !== null
+      ? dailyTargets(baseTargets(plan, bodyWeight, unit, maintenance, sex), intake, todayNum - 33, todayNum)[todayNum]
+      : null;
+  const needs = [!sex && "your sex", !w && "a body weight", !bf && "a body-fat %"].filter((s) => s !== false);
+  const missing = needs.length > 1 ? `${needs.slice(0, -1).join(", ")} and ${needs.at(-1)}` : needs[0];
+  // Protein is a minimum. Calories, carbs and fat are on target within 10% and over past that; under is fine mid-day.
+  const tone = (value: number, target: number | null, atLeast: boolean) =>
+    target === null ? "" : atLeast ? (value >= target ? "text-green-500" : "text-red-500") : value > target * 1.1 ? "text-red-500" : value >= target * 0.9 ? "text-green-500" : "";
   const trainedToday = (workoutRows ?? []).some((r) => localDate(new Date(r.started_at), tz) === today);
   const goalWater = w ? waterGoal(convert(Number(w.body_weight), w.unit === "kg" ? "kg" : "lb", "kg"), trainedToday, waterUnit) : null;
   const waterSoFar = waterTotal(water, waterUnit);
@@ -124,17 +156,29 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
       <section className="card grid grid-cols-4 gap-3 text-center">
         {(
           [
-            ["kcal", sum.kcal, null],
-            ["protein (g)", sum.protein, proteinTarget],
-            ["carbs (g)", sum.carbs, null],
-            ["fat (g)", sum.fat, null],
+            ["kcal", sum.kcal, targets?.kcal ?? null, false],
+            ["protein (g)", sum.protein, targets?.protein ?? null, true],
+            ["carbs (g)", sum.carbs, targets?.carbs ?? null, false],
+            ["fat (g)", sum.fat, targets?.fat ?? null, false],
           ] as const
-        ).map(([label, value, target]) => (
+        ).map(([label, value, target, atLeast]) => (
           <div key={label}>
-            <div className={`text-xl font-semibold tabular-nums ${target ? (value >= target ? "text-green-500" : "text-red-500") : ""}`}>{value}</div>
-            <div className="text-xs text-muted">{target ? `${label} / ${target}` : label}</div>
+            <div className={`text-xl font-semibold tabular-nums ${tone(value, target, atLeast)}`}>{value}</div>
+            <div className="text-xs text-muted">{target !== null ? `${label} / ${target}` : label}</div>
           </div>
         ))}
+        <p className="col-span-4 text-xs text-muted">
+          {targets && maintenance !== null ? (
+            <>
+              Maintenance ≈ {maintenance} kcal ({maintenance !== formula ? "learned from your logs" : "estimated"}). Targets adjust for the last 3 days of food
+              logged in LiftLog (the phone also counts Apple Health).
+            </>
+          ) : (
+            <>
+              <Link href="/settings" className="text-accent">Add {missing}</Link> to get daily calorie and macro targets.
+            </>
+          )}
+        </p>
       </section>
 
       <div className="flex gap-2">

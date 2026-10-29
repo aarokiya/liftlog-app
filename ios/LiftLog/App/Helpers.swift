@@ -39,6 +39,16 @@ enum Goal {
     static func band(_ value: Double, _ range: ClosedRange<Double>, slack: Double) -> Goal {
         range.contains(value) ? .hit : (range.lowerBound - slack...range.upperBound + slack).contains(value) ? .close : .missed
     }
+
+    /// Calories or a macro over a finished day: hit within 10% of the target, close within 20%, otherwise missed.
+    static func near(_ value: Double, _ target: Double) -> Goal {
+        band(value.rounded(), target * 0.9...target * 1.1, slack: target * 0.1)
+    }
+
+    /// The same while the day is still going: hit within 10%, missed once more than 10% over, nil while still under.
+    static func soFar(_ value: Double, _ target: Double) -> Goal? {
+        value.rounded() > target * 1.1 ? .missed : value.rounded() >= target * 0.9 ? .hit : nil
+    }
 }
 
 enum Format {

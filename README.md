@@ -9,6 +9,7 @@ A strength-training tracker: a native **SwiftUI iPhone app** for logging in the 
 - **Workouts:** routines and built-in programs (PPL, Upper/Lower, PPL + Upper/Lower, Arnold), JSON program import, rest days with optional cardio (Stairmaster, incline walk) logged in minutes, rest timer, set types, last session's numbers as placeholders.
 - **Stats:** estimated 1RM and growth per exercise, PRs by rep range, plateau detection, weekly sets per muscle against targets, push:pull and quad:ham balance, workload (ACWR), streaks, Wilks/DOTS.
 - **Body:** weight and tape measurements, body-fat estimates for men and women (Navy, RFM, or your own), a cut/bulk plan with a first checkpoint, Apple Health import and export.
+- **Daily targets:** calories, protein, carbs and fat from your cut/bulk plan, with maintenance learned from your logs and weigh-ins and a 3-day carryover for days over or under. A goals calendar, editable food logs, and optional reminders (10am, 1pm, 8pm, plus 10pm for goals not hit).
 - **Food and water:** official menus for 39 restaurant chains, 88 snack and drink brands, a 442k-item USDA food database with barcode lookup (Open Food Facts fallback), and a daily water goal.
 - **Equipment swaps:** replace any exercise with another one for the same movement when your gym lacks the machine.
 - **Campus extras (optional):** pick Georgia Tech in Settings for live dining-hall menus.

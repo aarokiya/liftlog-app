@@ -7,12 +7,15 @@ struct SettingsView: View {
     @Environment(AuthService.self) private var auth
     @Environment(SyncService.self) private var sync
     @Environment(HealthService.self) private var health
+    @Environment(Reminders.self) private var reminders
     @AppStorage(Prefs.unit) private var unitRaw = WeightUnit.lb.rawValue
     @AppStorage(Prefs.formula) private var formulaRaw = OneRepMaxFormula.epley.rawValue
     @AppStorage(Prefs.weeklyTarget) private var weeklyTarget = 3
     @AppStorage(Prefs.barWeight) private var barWeight = 45.0
     @AppStorage(Prefs.profileNeedsSync) private var profileNeedsSync = false
     @AppStorage(Prefs.campus) private var campus = ""
+    @AppStorage(Prefs.reminders) private var remindersOn = false
+    @State private var notificationsDenied = false
     @State private var confirmingDelete = false
     @State private var deleteError: String?
 
@@ -116,16 +119,46 @@ struct SettingsView: View {
                     Text("Saves finished workouts as strength training and reads weight, body fat, waist and height.")
                 }
 
+                Section {
+                    Toggle("Daily reminders", isOn: Binding(get: { remindersOn }, set: setReminders))
+                    if notificationsDenied {
+                        Text("Notifications are off for LiftLog. Allow them in the iOS Settings app → Notifications → LiftLog.")
+                            .font(.footnote).foregroundStyle(.red)
+                    }
+                } header: {
+                    Text("Reminders")
+                } footer: {
+                    Text("Check-ins at 10am, 1pm and 8pm, and at 10pm an alert for each food or water goal not hit yet. Alerts use what's logged in LiftLog and Apple Health as of the last time you opened the app.")
+                }
+
                 Section("Tools") {
                     NavigationLink("Plate calculator") { PlateCalculatorView() }
                     NavigationLink("Body & aesthetics") { BodyWeightView() }
                 }
             }
             .navigationTitle("Settings")
+            .task {
+                if remindersOn || notificationsDenied { notificationsDenied = await reminders.isDenied }
+            }
         }
     }
 
     private func markDirty() { profileNeedsSync = true }
+
+    /// On asks for permission and schedules the reminders, or turns back off if notifications are denied; off removes them.
+    private func setReminders(_ on: Bool) {
+        remindersOn = on
+        notificationsDenied = false
+        guard on else { return reminders.removeAll() }
+        Task {
+            if await reminders.requestPermission() {
+                reminders.refresh(context: context, health: health)
+            } else {
+                remindersOn = false
+                notificationsDenied = true
+            }
+        }
+    }
 }
 
 struct SignInView: View {

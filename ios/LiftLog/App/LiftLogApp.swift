@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UserNotifications
 
 @main
 struct LiftLogApp: App {
@@ -8,6 +9,7 @@ struct LiftLogApp: App {
     @State private var sync = SyncService()
     @State private var restTimer = RestTimer()
     @State private var health = HealthService()
+    @State private var reminders: Reminders
 
     init() {
         do {
@@ -19,6 +21,10 @@ struct LiftLogApp: App {
             fatalError("Could not open the local database: \(error)")
         }
         BuiltInExercises.seed(into: container.mainContext)
+        // The delegate has to be set before launch finishes for a tapped reminder to reach it.
+        let reminders = Reminders()
+        UNUserNotificationCenter.current().delegate = reminders
+        _reminders = State(initialValue: reminders)
     }
 
     var body: some Scene {
@@ -28,6 +34,7 @@ struct LiftLogApp: App {
                 .environment(sync)
                 .environment(restTimer)
                 .environment(health)
+                .environment(reminders)
         }
         .modelContainer(container)
     }

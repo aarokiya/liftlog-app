@@ -42,7 +42,7 @@ struct FoodSearchView: View {
             await search()
         }
         .navigationTitle("All foods")
-        .sheet(item: $picked) { item in LogFoodSheet(item: item, source: "outside", place: item.brand, meal: .current()) }
+        .logFoodSheet($picked, source: "outside", place: \.brand)
         .sheet(isPresented: $scanning) {
             BarcodeScanner { code in
                 scanning = false

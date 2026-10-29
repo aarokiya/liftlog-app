@@ -41,4 +41,6 @@ enum Prefs {
     static let campus = "campus"
     /// "male" or "female" picks the body-fat formulas, plan thresholds and Wilks/DOTS; empty = not set, which hides them.
     static let sex = "sex"
+    /// Daily check-ins and 10pm goal alerts as local notifications; off by default.
+    static let reminders = "reminders"
 }

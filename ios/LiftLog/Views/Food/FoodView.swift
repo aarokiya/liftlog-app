@@ -7,19 +7,29 @@ struct FoodView: View {
     @Query(filter: #Predicate<FoodLog> { $0.deletedAt == nil }, sort: \FoodLog.eatenAt, order: .reverse) private var logs: [FoodLog]
     @Query(sort: \BodyMetric.measuredAt, order: .reverse) private var metrics: [BodyMetric]
     @AppStorage(Prefs.unit) private var unitRaw = WeightUnit.lb.rawValue
-    @AppStorage(Prefs.campus) private var campus = ""
     @AppStorage(Prefs.sex) private var sexRaw = ""
     @Query(filter: #Predicate<WaterLog> { $0.deletedAt == nil }, sort: \WaterLog.drankAt, order: .reverse) private var waterLogs: [WaterLog]
     @Query(filter: #Predicate<Workout> { $0.deletedAt == nil }, sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
     @Environment(\.modelContext) private var context
     @Environment(HealthService.self) private var health
-    @State private var healthToday: HealthService.Nutrition?
+    @Environment(Reminders.self) private var reminders
+    /// What other apps saved to Health per day, for the targets and the calendar; one load covers both.
+    @State private var healthDays: [Date: HealthService.Nutrition] = [:]
+    /// The month the goals calendar shows.
+    @State private var month = Calendar.current.dateInterval(of: .month, for: .now)?.start ?? .now
+    /// The day picked in the goals calendar; a past day lists its logged foods under it.
+    @State private var day = Calendar.current.startOfDay(for: .now)
+    /// The logged food being edited.
+    @State private var editing: FoodLog?
     @State private var customWater = ""
     @State private var enteringWater = false
 
     private var today: [FoodLog] { logs.filter { Calendar.current.isDateInToday($0.eatenAt) } }
+    private var dayLogs: [FoodLog] { logs.filter { Calendar.current.isDate($0.eatenAt, inSameDayAs: day) } }
+    private var healthToday: HealthService.Nutrition? { healthDays[Calendar.current.startOfDay(for: .now)] }
     private var waterToday: [WaterLog] { waterLogs.filter { Calendar.current.isDateInToday($0.drankAt) } }
     private var waterUnit: WaterUnit { .preferred(for: WeightUnit(rawValue: unitRaw) ?? .lb) }
+    private var waterTotal: Double { waterToday.reduce(0) { $0 + $1.unit.convert($1.amount, to: waterUnit) } }
 
     private var waterGoal: Double? {
         guard let entry = metrics.first(where: { $0.deletedAt == nil && $0.bodyWeight != nil }), let bw = entry.bodyWeight else { return nil }
@@ -43,24 +53,43 @@ struct FoodView: View {
         logged(key) + (healthToday?[keyPath: healthKey] ?? 0)
     }
 
-    private var proteinTarget: Int? {
-        let live = metrics.filter { $0.deletedAt == nil }
-        guard let sex = Advanced.Sex(pref: sexRaw), let bf = live.first(where: { $0.bodyFatPct != nil })?.bodyFatPct,
-              let entry = live.first(where: { $0.bodyWeight != nil }), let bw = entry.bodyWeight else { return nil }
-        let unit = WeightUnit(rawValue: unitRaw) ?? .lb
-        return Aesthetics.bodyPlan(bodyWeight: entry.unit.convert(bw, to: unit), unit: unit, bodyFatPct: bf,
-                                   startWeight: live.planStartWeight(in: unit), sex: sex).proteinG
+    /// Targets run from the calendar's first day, or 33 days back so maintenance and carryover have their history.
+    private var rangeStart: Date {
+        min(month, EnergyTargets.historyStart() ?? month)
+    }
+
+    private func loadHealth() async {
+        healthDays = await health.dailyNutrition(from: rangeStart, to: .now)
+    }
+
+    /// Today's totals; the reminders are rebuilt when they change.
+    private var todayTotals: [Double] {
+        [total(\.kcal, \.kcal), total(\.protein, \.protein), total(\.carbs, \.carbs), total(\.fat, \.fat), waterTotal]
+    }
+
+    private func refreshReminders() {
+        reminders.refresh(context: context, health: health, healthDays: healthDays)
     }
 
     var body: some View {
+        let energy = EnergyTargets(metrics: metrics, logs: logs, health: healthDays, sex: Advanced.Sex(pref: sexRaw),
+                                   unit: WeightUnit(rawValue: unitRaw) ?? .lb, from: rangeStart)
+        let targets = energy?[.now]
         NavigationStack {
             List {
                 Section {
-                    HStack {
-                        macro("kcal", total(\.kcal, \.kcal))
-                        macro("protein", total(\.protein, \.protein), target: proteinTarget)
-                        macro("carbs", total(\.carbs, \.carbs))
-                        macro("fat", total(\.fat, \.fat))
+                    VStack(spacing: 8) {
+                        HStack {
+                            macro("kcal", total(\.kcal, \.kcal), target: targets?.kcal, grade: Goal.soFar)
+                            macro("protein", total(\.protein, \.protein), target: targets?.protein) { $0 >= $1 ? .hit : .missed }
+                            macro("carbs", total(\.carbs, \.carbs), target: targets?.carbs, grade: Goal.soFar)
+                            macro("fat", total(\.fat, \.fat), target: targets?.fat, grade: Goal.soFar)
+                        }
+                        Text(energy.map {
+                            "Maintenance ≈ \($0.maintenance) kcal, \($0.learned ? "learned from your logs" : "estimated"). Targets adjust for your last 3 days."
+                        } ?? "Set your sex and log your weight and a body-fat % in Settings → Body & aesthetics to get daily targets.")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if let healthToday {
                         LabeledContent("Logged in LiftLog", value: "\(Int(logged(\.kcal).rounded())) kcal · \(Int(logged(\.protein).rounded())) g P")
@@ -74,25 +103,12 @@ struct FoodView: View {
                     }
                 }
                 Section("Add food") {
-                    if campus == "gatech" {
-                        NavigationLink { HallPicker() } label: { Label("Dining hall", systemImage: "building.columns") }
-                    }
-                    NavigationLink { OutsideFoodView() } label: { Label("Outside food", systemImage: "takeoutbag.and.cup.and.straw") }
-                    NavigationLink { FoodSearchView() } label: { Label("Search all foods / scan barcode", systemImage: "magnifyingglass") }
+                    AddFoodLinks()
                 }
                 if !today.isEmpty {
                     Section("Logged today") {
                         ForEach(today) { log in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(log.name).lineLimit(1)
-                                    Text("\(log.place ?? log.source.capitalized) · \(Meal(rawValue: log.meal)?.label ?? log.meal) · \(Format.number(log.servings))×")
-                                        .font(.caption).foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text("\(Int((log.kcal * log.servings).rounded())) kcal · \(Int((log.protein * log.servings).rounded())) g P")
-                                    .font(.caption.monospacedDigit())
-                            }
+                            LoggedFoodRow(log: log) { editing = log }
                         }
                         .onDelete { offsets in
                             let rows = today
@@ -101,6 +117,25 @@ struct FoodView: View {
                     }
                 }
                 waterSection
+                Section {
+                    GoalCalendar(month: $month, selected: $day, logs: logs, waterLogs: waterLogs, workouts: workouts, metrics: metrics,
+                                 waterUnit: waterUnit, healthDays: healthDays, targets: energy)
+                } header: {
+                    Text("Daily goals")
+                } footer: {
+                    Text("Green: protein and water goals hit and calories within 10% of the day's target. Orange: protein and water within 15%, calories within 20%. Red: missed. Tap a day for its calories and macros.")
+                }
+                if !Calendar.current.isDateInToday(day), !dayLogs.isEmpty {
+                    Section("Logged on \(day.formatted(.dateTime.weekday().month().day()))") {
+                        ForEach(dayLogs) { log in
+                            LoggedFoodRow(log: log) { editing = log }
+                        }
+                        .onDelete { offsets in
+                            let rows = dayLogs
+                            for i in offsets { rows[i].softDelete() }
+                        }
+                    }
+                }
             }
             .navigationTitle("Food")
             .alert("Add water", isPresented: $enteringWater) {
@@ -112,15 +147,17 @@ struct FoodView: View {
                 }
                 Button("Cancel", role: .cancel) { customWater = "" }
             }
-            .task { healthToday = await health.nutrition(on: .now) }
-            .refreshable { healthToday = await health.nutrition(on: .now) }
+            .sheet(item: $editing) { EditFoodLogSheet(log: $0) }
+            .task(id: month) { await loadHealth() }
+            .refreshable { await loadHealth() }
+            .onChange(of: todayTotals) { refreshReminders() }
+            .onChange(of: healthDays) { refreshReminders() }
         }
     }
 
     private var waterSection: some View {
         let unit = waterUnit
-        let total = waterToday.reduce(0) { $0 + $1.unit.convert($1.amount, to: unit) }
-        let shown = (total * 10).rounded() / 10
+        let shown = (waterTotal * 10).rounded() / 10
         return Section("Water") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -172,11 +209,12 @@ struct FoodView: View {
         }
     }
 
-    private func macro(_ label: String, _ value: Double, target: Int? = nil) -> some View {
+    /// Today's total over its target; `grade` gets the rounded total and the target, and nil leaves it uncolored.
+    private func macro(_ label: String, _ value: Double, target: Int?, grade: (Double, Double) -> Goal?) -> some View {
         VStack(spacing: 2) {
             Text("\(Int(value.rounded()))").font(.headline.monospacedDigit())
-                .foregroundStyle(target.map { value.rounded() >= Double($0) ? Goal.hit.color : Goal.missed.color } ?? .primary)
-            Text(target.map { "\(label) / \($0)" } ?? label).font(.caption2).foregroundStyle(.secondary)
+                .foregroundStyle(target.flatMap { grade(value.rounded(), Double($0)) }?.color ?? .primary)
+            Text(target.map { "\(label) / \($0.formatted())" } ?? label).font(.caption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
     }
@@ -231,9 +269,7 @@ struct HallMenuView: View {
         .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search the menu")
         .navigationTitle(hall.name)
         .task(id: meal) { await load() }
-        .sheet(item: $picked) { item in
-            LogFoodSheet(item: item, source: "dining", place: hall.name, meal: Meal(rawValue: meal) ?? .snack)
-        }
+        .logFoodSheet($picked, source: "dining", place: { _ in hall.name }, meal: Meal(rawValue: meal) ?? .snack)
     }
 
     private func load() async {
@@ -251,6 +287,7 @@ struct HallMenuView: View {
 
 struct OutsideFoodView: View {
     @Environment(AuthService.self) private var auth
+    @Environment(\.foodPick) private var pick
     @State private var search = ""
     @State private var picked: FoodItem?
     @State private var addingCustom = false
@@ -313,8 +350,8 @@ struct OutsideFoodView: View {
             if !Task.isCancelled { packaged = results.uniqued() }
         }
         .navigationTitle("Outside food")
-        .sheet(item: $picked) { item in LogFoodSheet(item: item, source: "outside", place: item.brand, meal: .current()) }
-        .sheet(isPresented: $addingCustom) { CustomFoodSheet() }
+        .logFoodSheet($picked, source: "outside", place: \.brand)
+        .sheet(isPresented: $addingCustom) { CustomFoodSheet(pick: pick) }
     }
 }
 
@@ -349,7 +386,7 @@ struct SnackBrandView: View {
                 message = "Couldn't load: \(error.localizedDescription)"
             }
         }
-        .sheet(item: $picked) { item in LogFoodSheet(item: item, source: "outside", place: brand.name, meal: .current()) }
+        .logFoodSheet($picked, source: "outside", place: { _ in brand.name })
     }
 }
 
@@ -362,7 +399,7 @@ struct BrandMenuView: View {
             FoodRow(item: item) { picked = item }
         }
         .navigationTitle(brand)
-        .sheet(item: $picked) { item in LogFoodSheet(item: item, source: "outside", place: brand, meal: .current()) }
+        .logFoodSheet($picked, source: "outside", place: { _ in brand })
     }
 }
 
@@ -390,6 +427,28 @@ struct FoodRow: View {
                     Text("\(Int(item.kcal.rounded())) kcal").font(.subheadline.monospacedDigit()).foregroundStyle(.primary)
                     Text("\(Format.number(item.protein)) g protein").font(.caption).foregroundStyle(.secondary)
                 }
+            }
+        }
+        .tint(.primary)
+    }
+}
+
+/// A logged food on the Food screen; tap to edit it.
+struct LoggedFoodRow: View {
+    let log: FoodLog
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(log.name).lineLimit(1)
+                    Text("\(log.place ?? log.source.capitalized) · \(Meal(rawValue: log.meal)?.label ?? log.meal) · \(Format.number(log.servings))×")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text("\(Int((log.kcal * log.servings).rounded())) kcal · \(Int((log.protein * log.servings).rounded())) g P")
+                    .font(.caption.monospacedDigit())
             }
         }
         .tint(.primary)
@@ -455,6 +514,8 @@ struct LogFoodSheet: View {
 struct CustomFoodSheet: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    /// Set while replacing a logged food: the food goes back to the edit sheet instead of being logged.
+    var pick: FoodPick?
     @State private var name = ""
     @State private var place = ""
     @State private var kcal: Double?
@@ -468,8 +529,10 @@ struct CustomFoodSheet: View {
             Form {
                 TextField("What did you eat?", text: $name)
                 TextField("Where (optional)", text: $place)
-                Picker("Meal", selection: $meal) {
-                    ForEach(Meal.allCases) { Text($0.label).tag($0) }
+                if pick == nil {
+                    Picker("Meal", selection: $meal) {
+                        ForEach(Meal.allCases) { Text($0.label).tag($0) }
+                    }
                 }
                 Section("Macros") {
                     TextField("Calories", value: $kcal, format: .number).keyboardType(.decimalPad)
@@ -483,7 +546,14 @@ struct CustomFoodSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Log") {
+                    Button(pick == nil ? "Log" : "Use") {
+                        if let pick {
+                            let item = FoodItem(id: UUID().uuidString, name: name, serving: "", kcal: max(0, kcal ?? 0),
+                                                protein: max(0, protein ?? 0), carbs: max(0, carbs ?? 0), fat: max(0, fat ?? 0))
+                            dismiss()
+                            pick(item, "custom", place.isEmpty ? nil : place)
+                            return
+                        }
                         context.insert(FoodLog(
                             meal: meal.rawValue, source: "custom", place: place.isEmpty ? nil : place, name: name, serving: nil,
                             kcal: max(0, kcal ?? 0), protein: max(0, protein ?? 0), carbs: max(0, carbs ?? 0), fat: max(0, fat ?? 0)

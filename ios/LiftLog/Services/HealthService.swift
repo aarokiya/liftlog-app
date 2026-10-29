@@ -134,29 +134,34 @@ final class HealthService {
         var protein = 0.0
         var carbs = 0.0
         var fat = 0.0
-
-        var isEmpty: Bool { kcal == 0 && protein == 0 && carbs == 0 && fat == 0 }
     }
 
-    /// The day's dietary totals other apps (MyFitnessPal, Lose It!, ...) wrote to Health; nil if none or not allowed.
-    func nutrition(on date: Date) async -> Nutrition? {
-        guard isEnabled, Self.isAvailable else { return nil }
-        let start = Calendar.current.startOfDay(for: date)
-        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: start) else { return nil }
-        let window = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
-        func sum(_ id: HKQuantityTypeIdentifier, _ unit: HKUnit) async -> Double {
-            let query = HKStatisticsQueryDescriptor(
-                predicate: .quantitySample(type: HKQuantityType(id), predicate: window), options: .cumulativeSum
+    /// Daily calories and macros other apps (MyFitnessPal, Lose It!, ...) wrote to Health from `start` up to `end`,
+    /// keyed by the start of each day; empty if none or not allowed.
+    func dailyNutrition(from start: Date, to end: Date) async -> [Date: Nutrition] {
+        guard isEnabled, Self.isAvailable, end > start else { return [:] }
+        let from = Calendar.current.startOfDay(for: start)
+        func daily(_ id: HKQuantityTypeIdentifier, _ unit: HKUnit) async -> [Date: Double] {
+            let query = HKStatisticsCollectionQueryDescriptor(
+                predicate: .quantitySample(type: HKQuantityType(id), predicate: HKQuery.predicateForSamples(withStart: from, end: end)),
+                options: .cumulativeSum, anchorDate: from, intervalComponents: DateComponents(day: 1)
             )
-            return (try? await query.result(for: store))?.sumQuantity()?.doubleValue(for: unit) ?? 0
+            guard let collection = try? await query.result(for: store) else { return [:] }
+            var values: [Date: Double] = [:]
+            collection.enumerateStatistics(from: from, to: end) { statistics, _ in
+                if let value = statistics.sumQuantity()?.doubleValue(for: unit), value > 0 { values[statistics.startDate] = value }
+            }
+            return values
         }
-        let totals = Nutrition(
-            kcal: await sum(.dietaryEnergyConsumed, .kilocalorie()),
-            protein: await sum(.dietaryProtein, .gram()),
-            carbs: await sum(.dietaryCarbohydrates, .gram()),
-            fat: await sum(.dietaryFatTotal, .gram())
-        )
-        return totals.isEmpty ? nil : totals
+        let kcal = await daily(.dietaryEnergyConsumed, .kilocalorie())
+        let protein = await daily(.dietaryProtein, .gram())
+        let carbs = await daily(.dietaryCarbohydrates, .gram())
+        let fat = await daily(.dietaryFatTotal, .gram())
+        var result: [Date: Nutrition] = [:]
+        for day in Set(kcal.keys).union(protein.keys).union(carbs.keys).union(fat.keys) {
+            result[day] = Nutrition(kcal: kcal[day] ?? 0, protein: protein[day] ?? 0, carbs: carbs[day] ?? 0, fat: fat[day] ?? 0)
+        }
+        return result
     }
 
     private func importBody(context: ModelContext) async {
