@@ -1,0 +1,12 @@
+// Copy to Config.xcconfig (gitignored). These defaults use the public LiftLog backend
+// (https://liftlog-app-three.vercel.app); point them at your own Supabase project to self-host.
+// xcconfig treats "//" as a comment, so the URL uses $() to break it up.
+SUPABASE_URL = https:/$()/fextdjsijkertbcdejsy.supabase.co
+// The anon key is public by design; row-level security keeps every account's data private.
+SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZleHRkanNpamtlcnRiY2RlanN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNDE4MjIsImV4cCI6MjEwODgxNzgyMn0.F2ZlJ_LceYHpmxI0z2rB6R-gsvT6sE1H9vvPfhuubXE
+// Your free Personal Team id (Xcode → Settings → Accounts), optional.
+DEVELOPMENT_TEAM =
+// YES shows magic-link sign-in; needs an email sender (SMTP) set up in the Supabase project.
+LIFTLOG_EMAIL_LINKS = NO
+// Must be unique to you: a free Apple ID can't sign an app id another team already registered.
+LIFTLOG_BUNDLE_ID = com.example.liftlog

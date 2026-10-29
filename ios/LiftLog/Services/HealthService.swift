@@ -1,0 +1,214 @@
+import Foundation
+import HealthKit
+import LiftKit
+import Observation
+import SwiftData
+
+/// Apple Health: finished workouts go to Health as strength workouts; weight, body fat, waist, height and
+/// daily nutrition totals (e.g. from MyFitnessPal) come back.
+@MainActor
+@Observable
+final class HealthService {
+    static var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
+
+    private let store = HKHealthStore()
+    private let defaults = UserDefaults.standard
+    var isEnabled: Bool { didSet { defaults.set(isEnabled, forKey: Prefs.healthEnabled) } }
+    private(set) var lastError: String?
+    private(set) var lastImportAt: Date?
+
+    init() {
+        isEnabled = defaults.bool(forKey: Prefs.healthEnabled)
+    }
+
+    private var readTypes: Set<HKObjectType> {
+        [
+            HKQuantityType(.bodyMass), HKQuantityType(.height), HKQuantityType(.bodyFatPercentage),
+            HKQuantityType(.waistCircumference), HKQuantityType(.leanBodyMass), HKObjectType.workoutType(),
+            HKQuantityType(.dietaryEnergyConsumed), HKQuantityType(.dietaryProtein),
+            HKQuantityType(.dietaryCarbohydrates), HKQuantityType(.dietaryFatTotal),
+        ]
+    }
+
+    private var shareTypes: Set<HKSampleType> {
+        [HKObjectType.workoutType(), HKQuantityType(.activeEnergyBurned), HKQuantityType(.bodyMass)]
+    }
+
+    func enable() async {
+        guard Self.isAvailable else {
+            lastError = "Apple Health isn't available on this device."
+            return
+        }
+        do {
+            try await store.requestAuthorization(toShare: shareTypes, read: readTypes)
+            isEnabled = true
+            lastError = nil
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    /// Runs both directions; safe to call often.
+    func sync(context: ModelContext) async {
+        guard isEnabled, Self.isAvailable else { return }
+        if !defaults.bool(forKey: Prefs.healthNutritionAsked) {
+            // Users who enabled Health before nutrition was added get asked for the new types once.
+            defaults.set(true, forKey: Prefs.healthNutritionAsked)
+            try? await store.requestAuthorization(toShare: shareTypes, read: readTypes)
+        }
+        await exportWorkouts(context: context)
+        await importBody(context: context)
+    }
+
+    // MARK: Workouts → Health
+
+    private func exportWorkouts(context: ModelContext) async {
+        let pending = (try? context.fetch(FetchDescriptor<Workout>(predicate: #Predicate {
+            $0.deletedAt == nil && $0.endedAt != nil && $0.healthExportedAt == nil && $0.source == "app"
+        }))) ?? []
+        guard !pending.isEmpty else { return }
+        let bodyWeightKg = latestBodyWeightKg(context: context)
+        for workout in pending {
+            do {
+                try await save(workout, bodyWeightKg: bodyWeightKg)
+                workout.healthExportedAt = .now
+            } catch {
+                lastError = error.localizedDescription
+                break
+            }
+        }
+        try? context.save()
+    }
+
+    private func save(_ workout: Workout, bodyWeightKg: Double?) async throws {
+        guard let end = workout.endedAt, end > workout.startedAt else { return }
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = .traditionalStrengthTraining
+        configuration.locationType = .indoor
+        let builder = HKWorkoutBuilder(healthStore: store, configuration: configuration, device: .local())
+        try await builder.beginCollection(at: workout.startedAt)
+        if let bodyWeightKg {
+            // ~4 net METs for resistance training; Health shows it as active energy.
+            let kcal = 4.0 * bodyWeightKg * end.timeIntervalSince(workout.startedAt) / 3600
+            try await builder.addSamples([
+                HKQuantitySample(
+                    type: HKQuantityType(.activeEnergyBurned),
+                    quantity: HKQuantity(unit: .kilocalorie(), doubleValue: kcal),
+                    start: workout.startedAt, end: end
+                ),
+            ])
+        }
+        try await builder.addMetadata([HKMetadataKeyExternalUUID: workout.id.uuidString])
+        try await builder.endCollection(at: end)
+        _ = try await builder.finishWorkout()
+    }
+
+    func saveBodyWeight(_ value: Double, unit: WeightUnit, at date: Date) async {
+        guard isEnabled, Self.isAvailable else { return }
+        let sample = HKQuantitySample(
+            type: HKQuantityType(.bodyMass),
+            quantity: HKQuantity(unit: unit == .lb ? .pound() : .gramUnit(with: .kilo), doubleValue: value),
+            start: date, end: date
+        )
+        do { try await store.save(sample) } catch { lastError = error.localizedDescription }
+    }
+
+    // MARK: Health → app
+
+    struct Nutrition: Equatable {
+        var kcal = 0.0
+        var protein = 0.0
+        var carbs = 0.0
+        var fat = 0.0
+
+        var isEmpty: Bool { kcal == 0 && protein == 0 && carbs == 0 && fat == 0 }
+    }
+
+    /// The day's dietary totals other apps (MyFitnessPal, Lose It!, ...) wrote to Health; nil if none or not allowed.
+    func nutrition(on date: Date) async -> Nutrition? {
+        guard isEnabled, Self.isAvailable else { return nil }
+        let start = Calendar.current.startOfDay(for: date)
+        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: start) else { return nil }
+        let window = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        func sum(_ id: HKQuantityTypeIdentifier, _ unit: HKUnit) async -> Double {
+            let query = HKStatisticsQueryDescriptor(
+                predicate: .quantitySample(type: HKQuantityType(id), predicate: window), options: .cumulativeSum
+            )
+            return (try? await query.result(for: store))?.sumQuantity()?.doubleValue(for: unit) ?? 0
+        }
+        let totals = Nutrition(
+            kcal: await sum(.dietaryEnergyConsumed, .kilocalorie()),
+            protein: await sum(.dietaryProtein, .gram()),
+            carbs: await sum(.dietaryCarbohydrates, .gram()),
+            fat: await sum(.dietaryFatTotal, .gram())
+        )
+        return totals.isEmpty ? nil : totals
+    }
+
+    private func importBody(context: ModelContext) async {
+        let since = Calendar.current.date(byAdding: .year, value: -2, to: .now) ?? .distantPast
+        let unit = WeightUnit(rawValue: defaults.string(forKey: Prefs.unit) ?? "") ?? .lb
+        do {
+            let existing = Set(((try? context.fetch(FetchDescriptor<BodyMetric>(predicate: #Predicate { $0.source == "health" }))) ?? []).map(\.id))
+            for sample in try await samples(.bodyMass, since: since) where !existing.contains(sample.uuid) {
+                let metric = BodyMetric(
+                    id: sample.uuid, measuredAt: sample.startDate,
+                    bodyWeight: sample.quantity.doubleValue(for: unit == .lb ? .pound() : .gramUnit(with: .kilo)), unit: unit
+                )
+                metric.source = "health"
+                context.insert(metric)
+            }
+            for sample in try await samples(.bodyFatPercentage, since: since) where !existing.contains(sample.uuid) {
+                let metric = BodyMetric(id: sample.uuid, measuredAt: sample.startDate, bodyWeight: nil, unit: unit)
+                metric.bodyFatPct = (sample.quantity.doubleValue(for: .percent()) * 1000).rounded() / 10
+                metric.source = "health"
+                context.insert(metric)
+            }
+            for sample in try await samples(.waistCircumference, since: since) where !existing.contains(sample.uuid) {
+                let metric = BodyMetric(id: sample.uuid, measuredAt: sample.startDate, bodyWeight: nil, unit: unit)
+                metric.waistCm = sample.quantity.doubleValue(for: .meterUnit(with: .centi))
+                metric.source = "health"
+                context.insert(metric)
+            }
+            if let height = try await samples(.height, since: .distantPast, limit: 1).first {
+                // Health's height fills in a missing one or replaces it when Health has a newer measurement;
+                // otherwise the height set in LiftLog or on the web wins.
+                let cm = (height.quantity.doubleValue(for: .meterUnit(with: .centi)) * 10).rounded() / 10
+                let seen = defaults.object(forKey: Prefs.healthHeightSeenAt) as? Date
+                let missing = defaults.object(forKey: Prefs.heightCm) == nil
+                let isNew = missing || (seen.map { height.startDate > $0 } ?? false)
+                if isNew, defaults.object(forKey: Prefs.heightCm) as? Double != cm {
+                    defaults.set(cm, forKey: Prefs.heightCm)
+                    // Push only once this account's profile has been pulled, so a fresh install can't overwrite the web profile.
+                    if defaults.bool(forKey: Prefs.profilePulled) { defaults.set(true, forKey: Prefs.profileNeedsSync) }
+                }
+                defaults.set(height.startDate, forKey: Prefs.healthHeightSeenAt)
+            }
+            try context.save()
+            lastImportAt = .now
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    /// Samples from other apps and devices; LiftLog's own writes are skipped so they don't come back as duplicates.
+    private func samples(_ id: HKQuantityTypeIdentifier, since: Date, limit: Int? = nil) async throws -> [HKQuantitySample] {
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: HKQuantityType(id), predicate: HKQuery.predicateForSamples(withStart: since, end: nil))],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],
+            limit: limit
+        )
+        let own = Bundle.main.bundleIdentifier
+        return try await descriptor.result(for: store).filter { $0.sourceRevision.source.bundleIdentifier != own }
+    }
+
+    private func latestBodyWeightKg(context: ModelContext) -> Double? {
+        var descriptor = FetchDescriptor<BodyMetric>(
+            predicate: #Predicate { $0.deletedAt == nil && $0.bodyWeight != nil },
+            sortBy: [SortDescriptor(\.measuredAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        guard let latest = try? context.fetch(descriptor).first, let weight = latest.bodyWeight else { return nil }
+        return latest.unit.convert(weight, to: .kg)
+    }
+}

@@ -1,0 +1,222 @@
+{
+  "id": "arnold",
+  "name": "Arnold Split",
+  "split": "Arnold",
+  "gym": "gatech-crc",
+  "schedule": "Six days: run the three days twice a week.",
+  "days": [
+    {
+      "name": "Chest & Back",
+      "exercises": [
+        {
+          "exercise": 1,
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 180
+        },
+        {
+          "exercise": 8,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120
+        },
+        {
+          "exercise": 36,
+          "sets": 3,
+          "reps": [
+            8,
+            10
+          ],
+          "rest": 150
+        },
+        {
+          "exercise": 37,
+          "sets": 3,
+          "reps": [
+            8,
+            10
+          ],
+          "rest": 150
+        },
+        {
+          "exercise": 31,
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 60,
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 46,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60
+        }
+      ]
+    },
+    {
+      "name": "Shoulders & Arms",
+      "exercises": [
+        {
+          "exercise": 34,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120
+        },
+        {
+          "exercise": 54,
+          "sets": 4,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 33,
+          "sets": 3,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 39,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 20,
+          "sets": 3,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 19,
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 40,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 44,
+          "sets": 2,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60
+        }
+      ]
+    },
+    {
+      "name": "Legs",
+      "exercises": [
+        {
+          "exercise": 51,
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 180
+        },
+        {
+          "exercise": 5,
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 180
+        },
+        {
+          "exercise": 50,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 12,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 15,
+          "sets": 4,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60
+        },
+        {
+          "exercise": 29,
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60
+        },
+        {
+          "exercise": 46,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60
+        }
+      ]
+    }
+  ]
+}

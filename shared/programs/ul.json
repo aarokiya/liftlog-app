@@ -1,0 +1,272 @@
+{
+  "id": "ul",
+  "name": "Upper / Lower",
+  "split": "UL",
+  "gym": "gatech-crc",
+  "schedule": "Four days: Upper A, Lower A, rest, Upper B, Lower B.",
+  "days": [
+    {
+      "name": "Upper A",
+      "exercises": [
+        {
+          "exercise": 1,
+          "sets": 3,
+          "reps": [
+            5,
+            8
+          ],
+          "rest": 180
+        },
+        {
+          "exercise": 37,
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 150
+        },
+        {
+          "exercise": 34,
+          "sets": 2,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120
+        },
+        {
+          "exercise": 8,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120
+        },
+        {
+          "exercise": 54,
+          "sets": 3,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 39,
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 20,
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 90
+        }
+      ]
+    },
+    {
+      "name": "Lower A",
+      "exercises": [
+        {
+          "exercise": 3,
+          "sets": 3,
+          "reps": [
+            5,
+            8
+          ],
+          "rest": 180
+        },
+        {
+          "exercise": 5,
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 180
+        },
+        {
+          "exercise": 12,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 50,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 15,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60
+        },
+        {
+          "exercise": 46,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60
+        }
+      ]
+    },
+    {
+      "name": "Upper B",
+      "exercises": [
+        {
+          "exercise": 36,
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 150
+        },
+        {
+          "exercise": 61,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120
+        },
+        {
+          "exercise": 31,
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 38,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120
+        },
+        {
+          "exercise": 32,
+          "sets": 3,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 33,
+          "sets": 2,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 63,
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 40,
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90
+        }
+      ]
+    },
+    {
+      "name": "Lower B",
+      "exercises": [
+        {
+          "exercise": 52,
+          "sets": 3,
+          "reps": [
+            5,
+            8
+          ],
+          "rest": 180
+        },
+        {
+          "exercise": 51,
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 150
+        },
+        {
+          "exercise": 13,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90
+        },
+        {
+          "exercise": 58,
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 120
+        },
+        {
+          "exercise": 15,
+          "sets": 3,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60
+        },
+        {
+          "exercise": 64,
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60
+        }
+      ]
+    }
+  ]
+}

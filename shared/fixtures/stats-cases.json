@@ -1,0 +1,647 @@
+{
+  "conversion": [
+    {
+      "value": 100,
+      "to": "lb",
+      "expected": 220.46226218487757,
+      "from": "kg"
+    },
+    {
+      "value": 225,
+      "to": "kg",
+      "expected": 102.05828325,
+      "from": "lb"
+    },
+    {
+      "value": 45,
+      "to": "lb",
+      "expected": 45,
+      "from": "lb"
+    },
+    {
+      "value": 20,
+      "to": "lb",
+      "expected": 44.09245243697551,
+      "from": "kg"
+    }
+  ],
+  "e1rm": [
+    {
+      "weight": 225,
+      "reps": 5,
+      "formula": "epley",
+      "expected": 262.5
+    },
+    {
+      "weight": 225,
+      "reps": 5,
+      "formula": "brzycki",
+      "expected": 253.125
+    },
+    {
+      "weight": 225,
+      "reps": 5,
+      "formula": "lombardi",
+      "expected": 264.2892621948043
+    },
+    {
+      "weight": 315,
+      "reps": 1,
+      "formula": "epley",
+      "expected": 315
+    },
+    {
+      "weight": 135,
+      "reps": 10,
+      "formula": "epley",
+      "expected": 180.0
+    },
+    {
+      "weight": 135,
+      "reps": 15,
+      "formula": "epley",
+      "expected": null
+    },
+    {
+      "weight": 0,
+      "reps": 5,
+      "formula": "epley",
+      "expected": null
+    },
+    {
+      "weight": 185,
+      "reps": 12,
+      "formula": "brzycki",
+      "expected": 266.4
+    },
+    {
+      "weight": 100,
+      "reps": 0,
+      "formula": "epley",
+      "expected": null
+    }
+  ],
+  "volume": [
+    {
+      "sets": [
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 45,
+          "unit": "lb",
+          "reps": 10,
+          "type": "warmup"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 10,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 8,
+          "type": "working"
+        },
+        {
+          "exerciseId": "squat",
+          "sessionId": "s1",
+          "weight": 100,
+          "unit": "kg",
+          "reps": 5,
+          "type": "working"
+        }
+      ],
+      "unit": "lb",
+      "expected": 3532.3113109243877
+    },
+    {
+      "sets": [
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 45,
+          "unit": "lb",
+          "reps": 10,
+          "type": "warmup"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 10,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 8,
+          "type": "working"
+        },
+        {
+          "exerciseId": "squat",
+          "sessionId": "s1",
+          "weight": 100,
+          "unit": "kg",
+          "reps": 5,
+          "type": "working"
+        }
+      ],
+      "unit": "kg",
+      "expected": 1602.2294591
+    }
+  ],
+  "repMaxes": [
+    {
+      "sets": [
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 225,
+          "unit": "lb",
+          "reps": 5,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s2",
+          "weight": 235,
+          "unit": "lb",
+          "reps": 5,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s2",
+          "weight": 315,
+          "unit": "lb",
+          "reps": 1,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s3",
+          "weight": 300,
+          "unit": "lb",
+          "reps": 1,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 405,
+          "unit": "lb",
+          "reps": 1,
+          "type": "warmup"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s3",
+          "weight": 100,
+          "unit": "kg",
+          "reps": 3,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 25,
+          "type": "working"
+        }
+      ],
+      "unit": "lb",
+      "expected": {
+        "5": 235,
+        "1": 315,
+        "3": 220.46226218487757
+      }
+    }
+  ],
+  "bestE1RMPerSession": [
+    {
+      "sets": [
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 225,
+          "unit": "lb",
+          "reps": 5,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s2",
+          "weight": 235,
+          "unit": "lb",
+          "reps": 5,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s2",
+          "weight": 315,
+          "unit": "lb",
+          "reps": 1,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s3",
+          "weight": 300,
+          "unit": "lb",
+          "reps": 1,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 405,
+          "unit": "lb",
+          "reps": 1,
+          "type": "warmup"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s3",
+          "weight": 100,
+          "unit": "kg",
+          "reps": 3,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 25,
+          "type": "working"
+        }
+      ],
+      "unit": "lb",
+      "formula": "epley",
+      "expected": [
+        {
+          "sessionId": "s1",
+          "value": 262.5
+        },
+        {
+          "sessionId": "s2",
+          "value": 315
+        },
+        {
+          "sessionId": "s3",
+          "value": 300
+        }
+      ]
+    }
+  ],
+  "muscleSets": [
+    {
+      "exercises": {
+        "bench": {
+          "primary": "chest",
+          "secondary": [
+            "triceps",
+            "front_delts"
+          ]
+        },
+        "row": {
+          "primary": "back",
+          "secondary": [
+            "biceps"
+          ]
+        },
+        "squat": {
+          "primary": "quads",
+          "secondary": [
+            "glutes"
+          ]
+        }
+      },
+      "sets": [
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 45,
+          "unit": "lb",
+          "reps": 10,
+          "type": "warmup"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 10,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 8,
+          "type": "working"
+        },
+        {
+          "exerciseId": "bench",
+          "sessionId": "s1",
+          "weight": 115,
+          "unit": "lb",
+          "reps": 12,
+          "type": "drop"
+        },
+        {
+          "exerciseId": "row",
+          "sessionId": "s1",
+          "weight": 135,
+          "unit": "lb",
+          "reps": 10,
+          "type": "working"
+        },
+        {
+          "exerciseId": "squat",
+          "sessionId": "s1",
+          "weight": 225,
+          "unit": "lb",
+          "reps": 5,
+          "type": "failure"
+        },
+        {
+          "exerciseId": "unknown",
+          "sessionId": "s1",
+          "weight": 10,
+          "unit": "lb",
+          "reps": 10,
+          "type": "working"
+        }
+      ],
+      "expected": {
+        "chest": 3,
+        "triceps": 1.5,
+        "front_delts": 1.5,
+        "back": 1,
+        "biceps": 0.5,
+        "quads": 1,
+        "glutes": 0.5
+      }
+    }
+  ],
+  "plates": [
+    {
+      "target": 225,
+      "bar": 45,
+      "available": [
+        45,
+        35,
+        25,
+        10,
+        5,
+        2.5
+      ],
+      "expected": {
+        "perSide": [
+          45,
+          45
+        ],
+        "remainder": 0.0
+      }
+    },
+    {
+      "target": 315,
+      "bar": 45,
+      "available": [
+        45,
+        35,
+        25,
+        10,
+        5,
+        2.5
+      ],
+      "expected": {
+        "perSide": [
+          45,
+          45,
+          45
+        ],
+        "remainder": 0.0
+      }
+    },
+    {
+      "target": 137.5,
+      "bar": 45,
+      "available": [
+        45,
+        35,
+        25,
+        10,
+        5,
+        2.5
+      ],
+      "expected": {
+        "perSide": [
+          45
+        ],
+        "remainder": 2.5
+      }
+    },
+    {
+      "target": 140,
+      "bar": 45,
+      "available": [
+        45,
+        25,
+        10,
+        5,
+        2.5
+      ],
+      "expected": {
+        "perSide": [
+          45,
+          2.5
+        ],
+        "remainder": 0.0
+      }
+    },
+    {
+      "target": 100,
+      "bar": 20,
+      "available": [
+        25,
+        20,
+        15,
+        10,
+        5,
+        2.5,
+        1.25
+      ],
+      "expected": {
+        "perSide": [
+          25,
+          15
+        ],
+        "remainder": 0.0
+      }
+    },
+    {
+      "target": 45,
+      "bar": 45,
+      "available": [
+        45
+      ],
+      "expected": {
+        "perSide": [],
+        "remainder": 0.0
+      }
+    }
+  ],
+  "streaks": [
+    {
+      "dates": [
+        "2026-09-07",
+        "2026-09-09",
+        "2026-09-14",
+        "2026-09-16",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-28",
+        "2026-09-30",
+        "2026-10-05",
+        "2026-10-07",
+        "2026-10-12",
+        "2026-10-14",
+        "2026-10-26"
+      ],
+      "target": 2,
+      "asOf": "2026-10-27",
+      "expected": {
+        "current": 0,
+        "longest": 3
+      }
+    },
+    {
+      "dates": [
+        "2026-09-07",
+        "2026-09-09",
+        "2026-09-14",
+        "2026-09-16",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-28",
+        "2026-09-30",
+        "2026-10-05",
+        "2026-10-07",
+        "2026-10-12",
+        "2026-10-14",
+        "2026-10-26"
+      ],
+      "target": 2,
+      "asOf": "2026-10-20",
+      "expected": {
+        "current": 3,
+        "longest": 3
+      }
+    },
+    {
+      "dates": [
+        "2026-09-07",
+        "2026-09-09",
+        "2026-09-14",
+        "2026-09-16",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-28",
+        "2026-09-30",
+        "2026-10-05",
+        "2026-10-07",
+        "2026-10-12",
+        "2026-10-14",
+        "2026-10-26"
+      ],
+      "target": 2,
+      "asOf": "2026-11-03",
+      "expected": {
+        "current": 0,
+        "longest": 3
+      }
+    }
+  ],
+  "regression": [
+    {
+      "points": [
+        [
+          0,
+          100
+        ],
+        [
+          7,
+          105
+        ],
+        [
+          14,
+          110
+        ]
+      ],
+      "expected": {
+        "slope": 0.7142857142857143,
+        "intercept": 100.0
+      }
+    },
+    {
+      "points": [
+        [
+          0,
+          200
+        ],
+        [
+          3,
+          205
+        ],
+        [
+          10,
+          204
+        ],
+        [
+          21,
+          215
+        ]
+      ],
+      "expected": {
+        "slope": 0.6360153256704981,
+        "intercept": 200.59386973180077
+      }
+    },
+    {
+      "points": [
+        [
+          5,
+          100
+        ]
+      ],
+      "expected": null
+    },
+    {
+      "points": [
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "expected": null
+    }
+  ]
+}

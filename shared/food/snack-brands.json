@@ -1,0 +1,399 @@
+{
+  "note": "Snack and drink brands shown under Outside food. Each searches the foods databank (search_foods) with `q` and keeps rows whose name or brand contains `match` (default: the brand name); the items themselves come from USDA FoodData Central.",
+  "groups": [
+    {
+      "name": "Chips & crackers",
+      "brands": [
+        {
+          "name": "Doritos",
+          "q": "doritos"
+        },
+        {
+          "name": "Lay's",
+          "q": "lay's"
+        },
+        {
+          "name": "Cheetos",
+          "q": "cheetos"
+        },
+        {
+          "name": "Fritos",
+          "q": "fritos corn chips"
+        },
+        {
+          "name": "Ruffles",
+          "q": "ruffles"
+        },
+        {
+          "name": "Pringles",
+          "q": "pringles"
+        },
+        {
+          "name": "Takis",
+          "q": "takis"
+        },
+        {
+          "name": "Tostitos",
+          "q": "tostitos"
+        },
+        {
+          "name": "SunChips",
+          "q": "sunchips"
+        },
+        {
+          "name": "Kettle Brand",
+          "q": "kettle brand"
+        },
+        {
+          "name": "Goldfish",
+          "q": "goldfish"
+        },
+        {
+          "name": "Cheez-It",
+          "q": "cheez-it"
+        },
+        {
+          "name": "Ritz",
+          "q": "ritz crackers"
+        },
+        {
+          "name": "Wheat Thins",
+          "q": "wheat thins"
+        },
+        {
+          "name": "Triscuit",
+          "q": "triscuit"
+        },
+        {
+          "name": "Snyder's",
+          "q": "snyder's"
+        },
+        {
+          "name": "Popcorners",
+          "q": "popcorners"
+        },
+        {
+          "name": "Smartfood",
+          "q": "smartfood"
+        },
+        {
+          "name": "SkinnyPop",
+          "q": "skinnypop"
+        },
+        {
+          "name": "Funyuns",
+          "q": "funyuns"
+        }
+      ]
+    },
+    {
+      "name": "Candy & chocolate",
+      "brands": [
+        {
+          "name": "Snickers",
+          "q": "snickers"
+        },
+        {
+          "name": "Reese's",
+          "q": "reese's"
+        },
+        {
+          "name": "Kit Kat",
+          "q": "kit kat"
+        },
+        {
+          "name": "M&M's",
+          "q": "m&m candies"
+        },
+        {
+          "name": "Twix",
+          "q": "twix"
+        },
+        {
+          "name": "Hershey's",
+          "q": "hershey's milk chocolate",
+          "match": "hershey"
+        },
+        {
+          "name": "Skittles",
+          "q": "skittles"
+        },
+        {
+          "name": "Sour Patch Kids",
+          "q": "sour patch kids"
+        },
+        {
+          "name": "Starburst",
+          "q": "starburst"
+        },
+        {
+          "name": "Haribo",
+          "q": "haribo"
+        },
+        {
+          "name": "Swedish Fish",
+          "q": "swedish fish"
+        },
+        {
+          "name": "Milky Way",
+          "q": "milky way"
+        },
+        {
+          "name": "3 Musketeers",
+          "q": "3 musketeers"
+        },
+        {
+          "name": "Butterfinger",
+          "q": "butterfinger"
+        },
+        {
+          "name": "Twizzlers",
+          "q": "twizzlers"
+        }
+      ]
+    },
+    {
+      "name": "Cookies & pastries",
+      "brands": [
+        {
+          "name": "Oreo",
+          "q": "oreo cookies"
+        },
+        {
+          "name": "Chips Ahoy!",
+          "q": "chips ahoy"
+        },
+        {
+          "name": "Nutter Butter",
+          "q": "nutter butter"
+        },
+        {
+          "name": "Pop-Tarts",
+          "q": "pop-tarts"
+        },
+        {
+          "name": "Little Debbie",
+          "q": "little debbie"
+        },
+        {
+          "name": "Hostess",
+          "q": "hostess"
+        },
+        {
+          "name": "Rice Krispies Treats",
+          "q": "rice krispies treats"
+        },
+        {
+          "name": "Nutri-Grain",
+          "q": "nutri-grain"
+        },
+        {
+          "name": "belVita",
+          "q": "belvita"
+        },
+        {
+          "name": "Teddy Grahams",
+          "q": "teddy grahams"
+        }
+      ]
+    },
+    {
+      "name": "Protein & granola bars",
+      "brands": [
+        {
+          "name": "Quest",
+          "q": "quest bar"
+        },
+        {
+          "name": "Clif",
+          "q": "clif bar"
+        },
+        {
+          "name": "KIND",
+          "q": "kind bar"
+        },
+        {
+          "name": "RXBAR",
+          "q": "rxbar"
+        },
+        {
+          "name": "Nature Valley",
+          "q": "nature valley"
+        },
+        {
+          "name": "Pure Protein",
+          "q": "pure protein bar"
+        },
+        {
+          "name": "ONE",
+          "q": "one protein bar"
+        },
+        {
+          "name": "Built",
+          "q": "built bar"
+        },
+        {
+          "name": "Barebells",
+          "q": "barebells"
+        },
+        {
+          "name": "Premier Protein",
+          "q": "premier protein"
+        }
+      ]
+    },
+    {
+      "name": "Shakes & yogurt",
+      "brands": [
+        {
+          "name": "Fairlife",
+          "q": "fairlife"
+        },
+        {
+          "name": "Core Power",
+          "q": "core power"
+        },
+        {
+          "name": "Muscle Milk",
+          "q": "muscle milk"
+        },
+        {
+          "name": "Chobani",
+          "q": "chobani"
+        },
+        {
+          "name": "Oikos",
+          "q": "oikos"
+        }
+      ]
+    },
+    {
+      "name": "Jerky, nuts & more",
+      "brands": [
+        {
+          "name": "Jack Link's",
+          "q": "jack link's"
+        },
+        {
+          "name": "Slim Jim",
+          "q": "slim jim"
+        },
+        {
+          "name": "Planters",
+          "q": "planters"
+        },
+        {
+          "name": "Blue Diamond",
+          "q": "blue diamond almonds"
+        },
+        {
+          "name": "Wonderful Pistachios",
+          "q": "wonderful pistachios",
+          "match": "wonderful"
+        },
+        {
+          "name": "Uncrustables",
+          "q": "uncrustables"
+        },
+        {
+          "name": "Sargento",
+          "q": "sargento"
+        },
+        {
+          "name": "Babybel",
+          "q": "babybel"
+        }
+      ]
+    },
+    {
+      "name": "Drinks",
+      "brands": [
+        {
+          "name": "Coca-Cola",
+          "q": "coca-cola"
+        },
+        {
+          "name": "Pepsi",
+          "q": "pepsi cola"
+        },
+        {
+          "name": "Dr Pepper",
+          "q": "dr pepper soda"
+        },
+        {
+          "name": "Sprite",
+          "q": "sprite"
+        },
+        {
+          "name": "Mountain Dew",
+          "q": "mountain dew"
+        },
+        {
+          "name": "Gatorade",
+          "q": "gatorade"
+        },
+        {
+          "name": "Powerade",
+          "q": "powerade"
+        },
+        {
+          "name": "BodyArmor",
+          "q": "bodyarmor"
+        },
+        {
+          "name": "Celsius",
+          "q": "celsius energy"
+        },
+        {
+          "name": "Monster",
+          "q": "monster energy"
+        },
+        {
+          "name": "Red Bull",
+          "q": "red bull"
+        },
+        {
+          "name": "Bang",
+          "q": "bang energy"
+        },
+        {
+          "name": "Ghost",
+          "q": "ghost energy"
+        },
+        {
+          "name": "Prime",
+          "q": "prime hydration"
+        },
+        {
+          "name": "Vitaminwater",
+          "q": "vitaminwater"
+        },
+        {
+          "name": "AriZona",
+          "q": "arizona tea"
+        }
+      ]
+    },
+    {
+      "name": "Ice cream",
+      "brands": [
+        {
+          "name": "Ben & Jerry's",
+          "q": "ben & jerry's"
+        },
+        {
+          "name": "Häagen-Dazs",
+          "q": "haagen-dazs"
+        },
+        {
+          "name": "Halo Top",
+          "q": "halo top"
+        },
+        {
+          "name": "Klondike",
+          "q": "klondike"
+        }
+      ]
+    }
+  ]
+}

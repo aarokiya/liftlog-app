@@ -1,0 +1,41 @@
+{
+  "id": "gatech-crc",
+  "name": "Georgia Tech Campus Recreation Center",
+  "source": "https://crc.gatech.edu/facilities",
+  "note": "Equipment lines come from the CRC facilities page. It doesn't list individual machine models, so machine-specific exercises are the common pieces in those lines; swap with a substitute if one is missing.",
+  "equipment": {
+    "barbell": "Olympic and custom Rogue 15/20 kg bars, Eleiko platforms, racks",
+    "ez_bar": "EZ-curl bars",
+    "trap_bar": "Rogue trap bar",
+    "dumbbell": "5-130 lb",
+    "cable": "Cable Motion dual adjustable pulleys, Eleiko cable cross",
+    "machine": "Life Fitness Signature selectorized, Free Motion Genesis, Smith machine, standing calf raise",
+    "plate_machine": "Hammer Strength plate-loaded",
+    "assisted_machine": "Dip/chin assist",
+    "bodyweight": "Captain's chair, benches (flat, incline, decline, military, adjustable)"
+  },
+  "plates_lb": [55, 45, 35, 25, 10, 5, 2.5],
+  "dumbbell_max_lb": 130,
+  "substitution_groups": [
+    { "pattern": "horizontal_press", "exercises": [1, 35, 22, 57] },
+    { "pattern": "incline_press", "exercises": [67, 36, 53, 2] },
+    { "pattern": "chest_fly", "exercises": [31, 23, 55] },
+    { "pattern": "vertical_press", "exercises": [34, 59, 6] },
+    { "pattern": "lateral_raise", "exercises": [54, 32, 16, 66] },
+    { "pattern": "rear_delt", "exercises": [33, 62, 17] },
+    { "pattern": "vertical_pull", "exercises": [8, 38, 7, 56, 60] },
+    { "pattern": "horizontal_pull", "exercises": [10, 37, 61, 9, 65] },
+    { "pattern": "biceps", "exercises": [39, 18, 63, 19, 68, 69] },
+    { "pattern": "triceps", "exercises": [20, 40, 21, 41, 42] },
+    { "pattern": "squat", "exercises": [51, 3, 11, 27, 26, 58] },
+    { "pattern": "hinge", "exercises": [5, 43, 52, 4, 48, 14] },
+    { "pattern": "knee_flexion", "exercises": [50, 13] },
+    { "pattern": "knee_extension", "exercises": [12] },
+    { "pattern": "calves", "exercises": [15] },
+    { "pattern": "core", "exercises": [46, 64, 25, 47, 45, 24] },
+    { "pattern": "forearms", "exercises": [44] },
+    { "pattern": "traps", "exercises": [28] },
+    { "pattern": "hip_adduction", "exercises": [29] },
+    { "pattern": "hip_abduction", "exercises": [30] }
+  ]
+}

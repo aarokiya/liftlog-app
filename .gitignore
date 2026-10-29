@@ -1,0 +1,36 @@
+# macOS / Xcode
+.DS_Store
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+ios/LiftLog.xcodeproj/
+*.ipa
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Supabase
+supabase/.temp/
+supabase/.branches/
+
+# iOS generated / local
+ios/Config.xcconfig
+ios/LiftLog/Info.plist
+ios/LiftLog/LiftLog.entitlements

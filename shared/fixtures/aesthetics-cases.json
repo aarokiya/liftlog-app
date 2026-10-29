@@ -1,0 +1,263 @@
+{
+  "navy_male": [
+    {
+      "name": "average",
+      "heightCm": 180,
+      "waistCm": 90,
+      "neckCm": 40,
+      "bodyFatPct": 18.4,
+      "waistToHeight": 0.5
+    },
+    {
+      "name": "lean",
+      "heightCm": 175,
+      "waistCm": 76,
+      "neckCm": 38,
+      "bodyFatPct": 9.3,
+      "waistToHeight": 0.434
+    },
+    {
+      "name": "tall high waist",
+      "heightCm": 190,
+      "waistCm": 105,
+      "neckCm": 42,
+      "bodyFatPct": 25.3,
+      "waistToHeight": 0.553
+    }
+  ],
+  "rfm_male": [
+    {
+      "name": "average",
+      "heightCm": 180,
+      "waistCm": 90,
+      "hipsCm": 100,
+      "bodyFatPct": 24.0,
+      "waistToHip": 0.9,
+      "shoulderTarget": 145.6
+    },
+    {
+      "name": "tall lean",
+      "heightCm": 190,
+      "waistCm": 80,
+      "hipsCm": 95,
+      "bodyFatPct": 16.5,
+      "waistToHip": 0.842,
+      "shoulderTarget": 129.4
+    },
+    {
+      "name": "short lean",
+      "heightCm": 175,
+      "waistCm": 76,
+      "hipsCm": 92,
+      "bodyFatPct": 17.9,
+      "waistToHip": 0.826,
+      "shoulderTarget": 123.0
+    }
+  ],
+  "body_plan": [
+    {
+      "name": "high",
+      "bodyWeight": 210,
+      "unit": "lb",
+      "bodyFatPct": 27,
+      "goalPct": 12,
+      "expected": {
+        "phase": "cut",
+        "leanMass": 153.3,
+        "goalWeight": 174.2,
+        "checkpoint": 195.3,
+        "toLose": 14.7,
+        "weeklyLow": 1.1,
+        "weeklyHigh": 2.1,
+        "weeks": 10,
+        "proteinG": 174
+      }
+    },
+    {
+      "name": "moderate",
+      "bodyWeight": 205,
+      "unit": "lb",
+      "bodyFatPct": 17.5,
+      "goalPct": 12,
+      "expected": {
+        "phase": "slow_cut",
+        "leanMass": 169.1,
+        "goalWeight": 192.2,
+        "checkpoint": 192.2,
+        "toLose": 12.8,
+        "weeklyLow": 0.5,
+        "weeklyHigh": 1.0,
+        "weeks": 17,
+        "proteinG": 192
+      }
+    },
+    {
+      "name": "lean kg",
+      "bodyWeight": 80,
+      "unit": "kg",
+      "bodyFatPct": 11,
+      "goalPct": 12,
+      "expected": {
+        "phase": "lean_bulk",
+        "leanMass": 71.2,
+        "goalWeight": 80.9,
+        "checkpoint": 80.9,
+        "toLose": 0.0,
+        "weeklyLow": 0.1,
+        "weeklyHigh": 0.2,
+        "weeks": null,
+        "proteinG": 178
+      }
+    },
+    {
+      "name": "goal 15",
+      "bodyWeight": 220,
+      "unit": "lb",
+      "bodyFatPct": 30,
+      "goalPct": 15,
+      "expected": {
+        "phase": "cut",
+        "leanMass": 154.0,
+        "goalWeight": 181.2,
+        "checkpoint": 204.6,
+        "toLose": 15.4,
+        "weeklyLow": 1.1,
+        "weeklyHigh": 2.2,
+        "weeks": 10,
+        "proteinG": 181
+      }
+    },
+    {
+      "name": "checkpoint before goal kg",
+      "bodyWeight": 100,
+      "unit": "kg",
+      "bodyFatPct": 24,
+      "goalPct": 12,
+      "expected": {
+        "phase": "cut",
+        "leanMass": 76.0,
+        "goalWeight": 86.4,
+        "checkpoint": 93.0,
+        "toLose": 7.0,
+        "weeklyLow": 0.5,
+        "weeklyHigh": 1.0,
+        "weeks": 10,
+        "proteinG": 190
+      }
+    },
+    {
+      "name": "counting down",
+      "bodyWeight": 200,
+      "startWeight": 210,
+      "unit": "lb",
+      "bodyFatPct": 27,
+      "goalPct": 12,
+      "expected": {
+        "phase": "cut",
+        "leanMass": 153.3,
+        "goalWeight": 174.2,
+        "checkpoint": 195.3,
+        "toLose": 4.7,
+        "weeklyLow": 1.0,
+        "weeklyHigh": 2.0,
+        "weeks": 4,
+        "proteinG": 174
+      }
+    },
+    {
+      "name": "past checkpoint",
+      "bodyWeight": 190,
+      "startWeight": 210,
+      "unit": "lb",
+      "bodyFatPct": 27,
+      "goalPct": 12,
+      "expected": {
+        "phase": "cut",
+        "leanMass": 153.3,
+        "goalWeight": 174.2,
+        "checkpoint": 195.3,
+        "toLose": 0.0,
+        "weeklyLow": 1.0,
+        "weeklyHigh": 1.9,
+        "weeks": null,
+        "proteinG": 174
+      }
+    },
+    {
+      "name": "female cut",
+      "sex": "female",
+      "bodyWeight": 170,
+      "unit": "lb",
+      "bodyFatPct": 33,
+      "expected": {
+        "phase": "cut",
+        "leanMass": 113.9,
+        "goalWeight": 146.0,
+        "checkpoint": 158.1,
+        "toLose": 11.9,
+        "weeklyLow": 0.9,
+        "weeklyHigh": 1.7,
+        "weeks": 10,
+        "proteinG": 146
+      }
+    },
+    {
+      "name": "female in range",
+      "sex": "female",
+      "bodyWeight": 140,
+      "unit": "lb",
+      "bodyFatPct": 24,
+      "expected": {
+        "phase": "lean_bulk",
+        "leanMass": 106.4,
+        "goalWeight": 136.4,
+        "checkpoint": 136.4,
+        "toLose": 3.6,
+        "weeklyLow": 0.1,
+        "weeklyHigh": 0.4,
+        "weeks": null,
+        "proteinG": 136
+      }
+    }
+  ],
+  "navy_female": [
+    {
+      "name": "average",
+      "heightCm": 165,
+      "waistCm": 75,
+      "hipsCm": 100,
+      "neckCm": 33,
+      "bodyFatPct": 29.4
+    },
+    {
+      "name": "lean",
+      "heightCm": 170,
+      "waistCm": 66,
+      "hipsCm": 92,
+      "neckCm": 31,
+      "bodyFatPct": 20.4
+    },
+    {
+      "name": "tall",
+      "heightCm": 180,
+      "waistCm": 82,
+      "hipsCm": 108,
+      "neckCm": 35,
+      "bodyFatPct": 31.8
+    }
+  ],
+  "rfm_female": [
+    {
+      "name": "average",
+      "heightCm": 165,
+      "waistCm": 75,
+      "bodyFatPct": 32.0
+    },
+    {
+      "name": "lean",
+      "heightCm": 170,
+      "waistCm": 66,
+      "bodyFatPct": 24.5
+    }
+  ]
+}

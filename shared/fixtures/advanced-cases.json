@@ -1,0 +1,388 @@
+{
+  "scores": [
+    {
+      "totalKg": 500,
+      "bodyKg": 90,
+      "wilks": 319.2,
+      "dots": 323.3
+    },
+    {
+      "totalKg": 400,
+      "bodyKg": 75,
+      "wilks": 285.02,
+      "dots": 286.97
+    },
+    {
+      "totalKg": 650,
+      "bodyKg": 110,
+      "wilks": 382.52,
+      "dots": 384.97
+    }
+  ],
+  "balance": [
+    {
+      "muscleSets": {
+        "chest": 10,
+        "front_delts": 2,
+        "triceps": 4,
+        "back": 12,
+        "rear_delts": 2,
+        "biceps": 2,
+        "quads": 6,
+        "hamstrings": 4
+      },
+      "expected": {
+        "pushPull": 1.0,
+        "quadHam": 1.5
+      }
+    },
+    {
+      "muscleSets": {
+        "chest": 4
+      },
+      "expected": {
+        "pushPull": null,
+        "quadHam": null
+      }
+    }
+  ],
+  "acwr": [
+    {
+      "loads": [
+        {
+          "day": 1,
+          "load": 1000
+        },
+        {
+          "day": 2,
+          "load": 1000
+        },
+        {
+          "day": 3,
+          "load": 1000
+        },
+        {
+          "day": 4,
+          "load": 1000
+        },
+        {
+          "day": 5,
+          "load": 1000
+        },
+        {
+          "day": 6,
+          "load": 1000
+        },
+        {
+          "day": 7,
+          "load": 1000
+        },
+        {
+          "day": 8,
+          "load": 1000
+        },
+        {
+          "day": 9,
+          "load": 1000
+        },
+        {
+          "day": 10,
+          "load": 1000
+        },
+        {
+          "day": 11,
+          "load": 1000
+        },
+        {
+          "day": 12,
+          "load": 1000
+        },
+        {
+          "day": 13,
+          "load": 1000
+        },
+        {
+          "day": 14,
+          "load": 1000
+        },
+        {
+          "day": 15,
+          "load": 1000
+        },
+        {
+          "day": 16,
+          "load": 1000
+        },
+        {
+          "day": 17,
+          "load": 1000
+        },
+        {
+          "day": 18,
+          "load": 1000
+        },
+        {
+          "day": 19,
+          "load": 1000
+        },
+        {
+          "day": 20,
+          "load": 1000
+        },
+        {
+          "day": 21,
+          "load": 1000
+        },
+        {
+          "day": 22,
+          "load": 1000
+        },
+        {
+          "day": 23,
+          "load": 1000
+        },
+        {
+          "day": 24,
+          "load": 1000
+        },
+        {
+          "day": 25,
+          "load": 1000
+        },
+        {
+          "day": 26,
+          "load": 1000
+        },
+        {
+          "day": 27,
+          "load": 1000
+        },
+        {
+          "day": 28,
+          "load": 1000
+        }
+      ],
+      "today": 28,
+      "expected": 1.0
+    },
+    {
+      "loads": [
+        {
+          "day": 22,
+          "load": 1000
+        },
+        {
+          "day": 23,
+          "load": 1000
+        },
+        {
+          "day": 24,
+          "load": 1000
+        },
+        {
+          "day": 25,
+          "load": 1000
+        },
+        {
+          "day": 26,
+          "load": 1000
+        },
+        {
+          "day": 27,
+          "load": 1000
+        },
+        {
+          "day": 28,
+          "load": 1000
+        }
+      ],
+      "today": 28,
+      "expected": null,
+      "name": "only a week of history"
+    },
+    {
+      "loads": [],
+      "today": 28,
+      "expected": null
+    },
+    {
+      "name": "spike after a layoff",
+      "loads": [
+        {
+          "day": -10,
+          "load": 1000
+        },
+        {
+          "day": 22,
+          "load": 1000
+        },
+        {
+          "day": 23,
+          "load": 1000
+        },
+        {
+          "day": 24,
+          "load": 1000
+        },
+        {
+          "day": 25,
+          "load": 1000
+        },
+        {
+          "day": 26,
+          "load": 1000
+        },
+        {
+          "day": 27,
+          "load": 1000
+        },
+        {
+          "day": 28,
+          "load": 1000
+        }
+      ],
+      "today": 28,
+      "expected": 4.0
+    }
+  ],
+  "plateau": [
+    {
+      "points": [
+        {
+          "day": 0,
+          "value": 100
+        },
+        {
+          "day": 7,
+          "value": 100
+        },
+        {
+          "day": 14,
+          "value": 100.2
+        },
+        {
+          "day": 21,
+          "value": 100
+        }
+      ],
+      "expected": {
+        "weeklyChange": 0.0002,
+        "plateaued": true
+      }
+    },
+    {
+      "points": [
+        {
+          "day": 0,
+          "value": 100
+        },
+        {
+          "day": 7,
+          "value": 102
+        },
+        {
+          "day": 14,
+          "value": 104
+        },
+        {
+          "day": 21,
+          "value": 106
+        }
+      ],
+      "expected": {
+        "weeklyChange": 0.0194,
+        "plateaued": false
+      }
+    }
+  ],
+  "growth": [
+    {
+      "points": [
+        {
+          "day": 0,
+          "value": 200
+        },
+        {
+          "day": 7,
+          "value": 205
+        },
+        {
+          "day": 14,
+          "value": 203
+        },
+        {
+          "day": 21,
+          "value": 210
+        },
+        {
+          "day": 28,
+          "value": 215
+        }
+      ],
+      "expected": {
+        "start": 200,
+        "recent": 215,
+        "best": 215,
+        "change": 15,
+        "changePct": 7.5,
+        "weeklyRate": 3.5,
+        "prs": 3,
+        "lastPrDay": 28,
+        "sessions": 5,
+        "spanDays": 28
+      }
+    },
+    {
+      "points": [
+        {
+          "day": 10,
+          "value": 100
+        }
+      ],
+      "expected": {
+        "start": 100,
+        "recent": 100,
+        "best": 100,
+        "change": 0,
+        "changePct": 0,
+        "weeklyRate": null,
+        "prs": 0,
+        "lastPrDay": 10,
+        "sessions": 1,
+        "spanDays": 0
+      }
+    },
+    {
+      "points": [
+        {
+          "day": 0,
+          "value": 150
+        },
+        {
+          "day": 5,
+          "value": 140
+        },
+        {
+          "day": 12,
+          "value": 135
+        },
+        {
+          "day": 19,
+          "value": 130
+        }
+      ],
+      "expected": {
+        "start": 150,
+        "recent": 140,
+        "best": 150,
+        "change": -10,
+        "changePct": -6.7,
+        "weeklyRate": -7,
+        "prs": 0,
+        "lastPrDay": 0,
+        "sessions": 4,
+        "spanDays": 19
+      }
+    }
+  ]
+}

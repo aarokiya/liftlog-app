@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  liftkit:
+    runs-on: ubuntu-latest
+    container: swift:6.0-jammy
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test
+        working-directory: ios/Packages/LiftKit
+
+  ios:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - name: Write Config.xcconfig
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          cp Config.example.xcconfig Config.xcconfig
+          if [ -n "$SUPABASE_URL" ]; then
+            # Keep the example's other settings (bundle id, email links); swap in the project's URL and key.
+            { grep -v '^SUPABASE_URL\|^SUPABASE_ANON_KEY' Config.example.xcconfig
+              printf 'SUPABASE_URL = %s\nSUPABASE_ANON_KEY = %s\n' "$(printf '%s' "$SUPABASE_URL" | sed 's|//|/$()/|')" "$SUPABASE_ANON_KEY"
+            } > Config.xcconfig
+          fi
+      - run: xcodegen generate
+      - name: Build for simulator
+        shell: bash -eo pipefail {0}
+        run: |
+          xcodebuild build \
+            -project LiftLog.xcodeproj \
+            -scheme LiftLog \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty
+
+  ios-demo:
+    runs-on: macos-15
+    needs: ios
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: cp Config.example.xcconfig Config.xcconfig && xcodegen generate
+      - name: Record Food flow on the simulator
+        shell: bash -eo pipefail {0}
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for k in sorted(d, reverse=True) if 'iOS' in k for x in d[k] if x['name'].startswith('iPhone 16 Pro')))")
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl io "$UDID" recordVideo --codec h264 --force ../food-demo.mp4 &
+          REC=$!
+          sleep 2
+          xcodebuild test -project LiftLog.xcodeproj -scheme LiftLog -destination "id=$UDID" \
+            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO | xcpretty || true
+          kill -INT $REC
+          sleep 3
+          ls -la ../food-demo.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: food-demo
+          path: food-demo.mp4

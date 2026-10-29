@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f7f9;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --accent: #f97316;
+  --accent-soft: #fff1e6;
+  --good: #16a34a;
+  --bad: #dc2626;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0b0f;
+    --foreground: #f1f5f9;
+    --muted: #94a3b8;
+    --card: #13161d;
+    --border: #232835;
+    --accent: #fb923c;
+    --accent-soft: #2a1a0e;
+    --good: #4ade80;
+    --bad: #f87171;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Inter", sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum";
+}
+
+.input {
+  @apply rounded-lg border border-border bg-card px-3 py-1.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20;
+}
+.btn {
+  @apply rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:brightness-110 active:scale-[0.98];
+}
+.btn-ghost {
+  @apply rounded-lg border border-border bg-card px-3 py-1.5 text-sm transition hover:border-accent/50;
+}
+.card {
+  @apply rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5;
+}
+.card-title {
+  @apply mb-3 text-sm font-semibold tracking-tight;
+}
+.label {
+  @apply text-xs font-medium uppercase tracking-wide text-muted;
+}
+.chip {
+  @apply rounded-full border border-border px-3 py-1 text-xs font-medium text-muted transition hover:text-foreground;
+}
+.chip-on {
+  @apply border-accent bg-accent-soft text-accent;
+}
