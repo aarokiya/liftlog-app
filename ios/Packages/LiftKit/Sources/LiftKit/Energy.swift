@@ -100,6 +100,15 @@ public enum Energy {
         return Base(targets: Targets(kcal: kcal, protein: protein, carbs: carbs, fat: fat), kcalFloor: kcalFloor, fatFloor: fatFloor)
     }
 
+    /// What day `d` pays back: minus the average miss of the 3 days before it. Typed step by step so the Linux
+    /// compiler doesn't time out on one long optional expression.
+    private static func owed(_ misses: [Int: Double], on d: Int) -> Double {
+        let a: Double = misses[d - 1] ?? 0
+        let b: Double = misses[d - 2] ?? 0
+        let c: Double = misses[d - 3] ?? 0
+        return -(a + b + c) / 3
+    }
+
     /// Targets for each day from `from` through `through`. A day's miss (intake minus its target) is paid back evenly
     /// over the next 3 days, capped at ±15% of the base calories and ±25% of the base fat, and never below the floors.
     /// Only complete days count (intake at least 50% of that day's target). Protein stays fixed; carbs fill the rest.
@@ -109,8 +118,8 @@ public enum Energy {
         var out: [Int: Targets] = [:]
         var devKcal: [Int: Double] = [:], devFat: [Int: Double] = [:]
         for d in stride(from: from, through: through, by: 1) {
-            var adjKcal = -((devKcal[d - 1] ?? 0) + (devKcal[d - 2] ?? 0) + (devKcal[d - 3] ?? 0)) / 3
-            var adjFat = -((devFat[d - 1] ?? 0) + (devFat[d - 2] ?? 0) + (devFat[d - 3] ?? 0)) / 3
+            var adjKcal = owed(devKcal, on: d)
+            var adjFat = owed(devFat, on: d)
             adjKcal = min(max(adjKcal, -0.15 * kcalBase), 0.15 * kcalBase)
             adjFat = min(max(adjFat, -0.25 * fatBase), 0.25 * fatBase)
             let kcal = max(base.kcalFloor, round10(kcalBase + adjKcal))
