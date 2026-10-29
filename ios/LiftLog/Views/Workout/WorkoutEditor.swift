@@ -76,13 +76,6 @@ struct WorkoutEditor: View {
                     Button("Finish") { finish() }.bold()
                 }
             }
-            // The number pads have no return key.
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
-            }
         }
         .safeAreaInset(edge: .bottom) {
             if isActive { RestTimerBar() }
@@ -237,27 +230,41 @@ struct SetRowView: View {
     let isActive: Bool
     var onComplete: () -> Void
 
+    private enum Field { case weight, reps, minutes }
+    @FocusState private var focus: Field?
+
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             Text(set.setType.marker)
                 .font(.caption2.weight(.heavy))
                 .foregroundStyle(set.setType.color)
                 .frame(width: Self.gutter)
                 .accessibilityHidden(true)
             if isTimed {
-                number(hint.seconds.map { Format.number(Double($0) / 60) }, value: minutes, label: "Minutes")
-                Text("min").foregroundStyle(.secondary)
+                zone(.minutes, minWidth: 72) {
+                    number(hint.seconds.map { Format.number(Double($0) / 60) }, value: minutes, label: "Minutes").focused($focus, equals: .minutes)
+                    Text(" min").foregroundStyle(.secondary)
+                }
             } else {
-                number(hint.weight.map(Format.number), value: $set.weight.onSet(set.touch), label: "Weight")
-                Text("\(set.unit.rawValue) ×").foregroundStyle(.secondary)
-                TextField(hint.reps.map(String.init) ?? "0", value: $set.reps.onSet(set.touch), format: .number)
-                    .keyboardType(.numberPad)
-                    .fixedSize()
-                    .frame(minWidth: 28, alignment: .leading)
-                    .accessibilityLabel("Reps")
+                zone(.weight, minWidth: 76) {
+                    number(hint.weight.map(Format.number), value: $set.weight.onSet(set.touch), label: "Weight").focused($focus, equals: .weight)
+                    Text(" \(set.unit.rawValue) ×").foregroundStyle(.secondary)
+                }
+                zone(.reps, minWidth: 52) {
+                    TextField(hint.reps.map(String.init) ?? "0", value: $set.reps.onSet(set.touch), format: .number)
+                        .keyboardType(.numberPad)
+                        .fixedSize()
+                        .focused($focus, equals: .reps)
+                        .accessibilityLabel("Reps")
+                }
             }
             Spacer(minLength: 0)
-            if isActive {
+            if focus != nil {
+                // Closes the number pad, which has no return key.
+                Button("Done") { focus = nil }
+                    .font(.footnote.weight(.semibold))
+                    .buttonStyle(.borderless)
+            } else if isActive {
                 Button(action: toggle) {
                     Image(systemName: set.completedAt == nil ? "circle" : "checkmark.circle.fill")
                         .font(.callout)
@@ -270,7 +277,6 @@ struct SetRowView: View {
             }
         }
         .font(.footnote.monospacedDigit())
-        .frame(minHeight: 20)
         .contextMenu {
             Picker("Set type", selection: $set.setType.onSet(set.touch)) {
                 ForEach(SetType.allCases, id: \.self) { Text($0.title).tag($0) }
@@ -279,14 +285,20 @@ struct SetRowView: View {
         }
     }
 
+    /// A tap target around a small field: the text stays small, but a tap anywhere in the row's height and `minWidth`
+    /// starts typing in it.
+    private func zone(_ field: Field, minWidth: CGFloat, @ViewBuilder content: () -> some View) -> some View {
+        HStack(spacing: 0) { content() }
+            .frame(minWidth: minWidth, minHeight: 28, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { focus = field }
+    }
+
     /// A decimal field as wide as its number, so the line reads like text; the placeholder is last time's value.
     private func number(_ placeholder: String?, value: Binding<Double?>, label: String) -> some View {
         TextField(placeholder ?? "0", value: value, format: .number)
             .keyboardType(.decimalPad)
             .fixedSize()
-            .padding(.vertical, 2)
-            .padding(.trailing, 2)
-            .contentShape(Rectangle())
             .accessibilityLabel(label)
     }
 
